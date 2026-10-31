@@ -196,8 +196,8 @@ async def check_text(text: str, direction: Direction = "input", *, deep: bool = 
                 raise
     if not blocked and settings.guardrail_configured:
         blocked, layer = await _guardrail([{"text": {"text": text}}], direction), "guardrail"
-    elif layer == "local" and settings.safety_required:
-        raise SafetyUnavailable()  # no AI layer gave a verdict
+    elif layer == "local" and settings.safety_required and deep:
+        raise SafetyUnavailable()  # a deep check was asked for and no AI layer gave a verdict
     if layer != "local":
         _remember(key, blocked)
     if blocked:

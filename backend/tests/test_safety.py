@@ -10,6 +10,23 @@ async def test_wordlist_blocks_including_leetspeak():
     assert (await check_text("a normal note about cooking", "input")).ok
 
 
+async def test_required_safety_without_guardrail(monkeypatch):
+    """Production without a guardrail: shallow checks use the word list, deep checks need the moderator."""
+    from app.services.safety import service
+
+    monkeypatch.setattr(service.settings, "safety_required", True)
+    monkeypatch.setattr(service, "_moderator_on", lambda: True)
+
+    async def down(text):
+        raise service.SafetyUnavailable()
+
+    monkeypatch.setattr(service, "_moderate", down)
+    assert (await check_text("ui ux design skills", "output", deep=False)).ok
+    assert not (await check_text("y0u are stup1d", "output", deep=False)).ok
+    with pytest.raises(service.SafetyUnavailable):
+        await check_text("ui ux design skills", "input")
+
+
 async def test_safe_text_cannot_be_forged():
     with pytest.raises(TypeError):
         SafeText("anything", object())
