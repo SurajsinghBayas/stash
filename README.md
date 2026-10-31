@@ -179,6 +179,10 @@ First-time server setup and AWS resources are covered step by step in [`deploy/R
 
 Found a vulnerability? Please report it privately to the maintainer rather than opening a public issue.
 
+## Contributing
+
+Contributions are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, checks and the pull request process.
+
 ---
 
 <div align="center">
