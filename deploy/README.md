@@ -45,18 +45,14 @@ export STASH_HOST=ubuntu@<elastic-ip> STASH_KEY=~/.ssh/stash.pem STASH_DOMAIN=<y
 ./deploy/deploy.sh setup
 ```
 
-## 3. Database user (once)
+## 3. Database and app login
 
+After step 4 (the server's `backend/.env` holds `DATABASE_URL`), run on the server:
 ```bash
-ssh -i $STASH_KEY $STASH_HOST
-psql "host=stash-db.cv4i600y6bxd.ap-south-1.rds.amazonaws.com user=stash_admin dbname=stash sslmode=require"
+sudo bash /srv/stash/deploy/db-setup.sh      # asks for the RDS master password (master user: postgres)
 ```
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE USER stash_app WITH PASSWORD '<letters-and-digits-only>';
-GRANT ALL ON DATABASE stash TO stash_app;
-ALTER SCHEMA public OWNER TO stash_app;
-```
+It creates the database and the `stash_app` login if missing, sets the login's password to the one in `DATABASE_URL`,
+enables pgvector and hands the schema to the app. Safe to run again; run it whenever the password in `.env` changes.
 
 ## 4. Production `.env` (on the server, never in git)
 
