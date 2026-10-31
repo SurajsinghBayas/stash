@@ -1,0 +1,17 @@
+# Public pages are open to search engines. Accounts, canvases and shared links are not.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /app
+Disallow: /c/
+Disallow: /s/
+Disallow: /share
+Disallow: /settings
+Disallow: /reminders
+Disallow: /profile
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /check-email
+Disallow: /forgot-password
+
+Sitemap: https://stash.surajbayas.me/sitemap.xml

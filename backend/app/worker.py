@@ -209,8 +209,7 @@ async def _reminder_mail(session: AsyncSession, payload: dict) -> tuple[str, tem
                 card_title = "A card on this canvas"  # flagged text never goes out by email
             else:
                 card_title, card_snippet = title_of(item.kind, item.content), snippet_of(item.kind, item.content)
-    return user.email, templates.reminder(card_title or "Reminder", card_snippet, reminder.note, canvas_title,
-                                          link)
+    return user.email, templates.reminder(card_title, card_snippet, reminder.note, canvas_title, link)
 
 
 async def send_email(session: AsyncSession, payload: dict, job: dict) -> None:

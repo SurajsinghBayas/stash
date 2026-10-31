@@ -140,3 +140,17 @@ One-time setup:
    on EC2 Ubuntu and the CI key can only run the deploy script.
 
 Manual run: GitHub → Actions → CI/CD → Run workflow. Server-side by hand: `sudo /srv/stash/deploy/remote-deploy.sh $(git -C /srv/stash rev-parse origin/main)`.
+
+## Security
+
+- **nginx** (`deploy/nginx/`): HTTPS only with HSTS, a strict Content-Security-Policy, anti-framing and nosniff
+  headers, hidden server version, per-IP rate limits (`stash-limits.conf`), slow-client timeouts and no dotfiles.
+  `remote-deploy.sh` installs these on every deploy once the certificate exists, runs `nginx -t` first and restores
+  the previous files if the new ones are rejected. A deploy only picks up changes to `remote-deploy.sh` itself on
+  the *next* deploy (the running copy is the old file).
+- **API**: its own security headers, `no-store` on personal data, a 1 MB body cap (also for chunked bodies), the
+  Origin check against CSRF, per-IP and per-account rate limits, and SSRF-safe link fetching pinned to the checked
+  address. `backend/tests/test_security.py` checks tenant isolation on every id-based route.
+- **Host** (once): `sudo bash /srv/stash/deploy/harden-server.sh` turns on key-only SSH, fail2ban (SSH and nginx
+  rate-limit offenders), automatic security updates, the ufw firewall and kernel network hardening.
+- **AWS**: keep IMDSv2 required on the instance, RDS private, and the S3 bucket's public access blocked.

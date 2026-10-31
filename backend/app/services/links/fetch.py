@@ -3,11 +3,12 @@
 - http/https only, ports 80/443 only
 - every resolved address must be public (blocks 169.254.169.254, localhost, private ranges)
 - redirects are followed by hand, max 3, and each hop is checked again
+- the connection goes to the exact address that was checked (DNS rebinding cannot swap in a private one between
+  the check and the request); TLS still verifies the certificate against the real hostname
 - 8 s timeout, 2 MB cap, text/html only
 
 The readable article text (Markdown, headings kept) is extracted with trafilatura for the reader agent.
-The EC2 instance also requires IMDSv2, so a plain GET cannot read instance credentials even if DNS changes
-between the check and the request.
+The EC2 instance also requires IMDSv2, so even a plain GET to the metadata address could not read credentials.
 """
 
 import asyncio
@@ -15,7 +16,7 @@ import ipaddress
 import socket
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
 import trafilatura
@@ -33,7 +34,15 @@ class BlockedURL(Exception):
     pass
 
 
-async def _check_host(url: str) -> None:
+@dataclass
+class Target:
+    """Where to connect for a checked URL: the pinned address, and the hostname for Host, SNI and the cert."""
+    url: str  # same URL with the host replaced by the checked IP
+    host: str
+    host_header: str
+
+
+async def _check_host(url: str) -> Target:
     parts = urlsplit(url)
     if parts.scheme not in ("http", "https") or not parts.hostname:
         raise BlockedURL("scheme")
@@ -46,10 +55,15 @@ async def _check_host(url: str) -> None:
         infos = await asyncio.get_running_loop().getaddrinfo(host, parts.port or 443, type=socket.SOCK_STREAM)
     except socket.gaierror as exc:
         raise BlockedURL("dns") from exc
-    for info in infos:
-        address = ipaddress.ip_address(info[4][0])
-        if not address.is_global or address.is_multicast:
-            raise BlockedURL("private_address")
+    addresses = [ipaddress.ip_address(info[4][0]) for info in infos]
+    if not addresses or any(not a.is_global or a.is_multicast for a in addresses):
+        raise BlockedURL("private_address")
+    ip = addresses[0]
+    netloc = f"[{ip}]" if ip.version == 6 else str(ip)
+    if parts.port:
+        netloc += f":{parts.port}"
+    host_header = host if not parts.port else f"{host}:{parts.port}"
+    return Target(urlunsplit((parts.scheme, netloc, parts.path or "/", parts.query, "")), host, host_header)
 
 
 class _MetaParser(HTMLParser):
@@ -134,8 +148,9 @@ async def fetch_page(url: str) -> Page:
                                  headers={"User-Agent": USER_AGENT, "Accept": "text/html"}) as client:
         current = url
         for _ in range(MAX_REDIRECTS + 1):
-            await _check_host(current)
-            async with client.stream("GET", current) as resp:
+            target = await _check_host(current)
+            async with client.stream("GET", target.url, headers={"Host": target.host_header},
+                                     extensions={"sni_hostname": target.host}) as resp:
                 if resp.is_redirect:
                     location = resp.headers.get("location")
                     if not location:

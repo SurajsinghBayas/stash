@@ -101,9 +101,17 @@ export default function SharedCanvas() {
   });
 
   useEffect(() => {
-    const robots = Object.assign(document.createElement("meta"), { name: "robots", content: "noindex, nofollow" });
+    // Shared canvases are private content made viewable, not pages for search engines.
+    let robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const before = robots?.content ?? null;
+    if (!robots) robots = Object.assign(document.createElement("meta"), { name: "robots" });
+    robots.content = "noindex, nofollow";
     document.head.appendChild(robots);
-    return () => { robots.remove(); document.title = "Stash"; };
+    return () => {
+      if (before === null) robots.remove();
+      else robots.content = before;
+      document.title = "Stash";
+    };
   }, []);
   useEffect(() => {
     if (shared.data) document.title = `${shared.data.title} · Shared on Stash`;

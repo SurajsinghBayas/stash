@@ -233,7 +233,8 @@ async def unsubscribe_page(token: str, session: AsyncSession = Depends(get_sessi
         "<!doctype html><meta name=viewport content='width=device-width'><title>Stash</title>"
         "<body style='margin:0;background:#09090B;color:#EDEDEF;font:15px/1.6 -apple-system,Segoe UI,sans-serif;"
         "display:grid;place-items:center;min-height:100vh'><p style='max-width:40ch;padding:24px'>"
-        f"{message}</p></body>"
+        f"{message}</p></body>",
+        headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"},
     )
 
 

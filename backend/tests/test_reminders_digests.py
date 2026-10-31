@@ -89,7 +89,7 @@ async def test_daily_and_weekly_digest_once_per_period(client, canvas, user):
         assert await digests.schedule(s, MONDAY_8AM + timedelta(minutes=5)) == 0
     await drain()
     subjects = sorted(m["subject"] for m in sender.outbox)
-    assert subjects == ["Your day in Stash: 1 card noted", "Your week in Stash: 1 card noted"]
+    assert subjects == ["Your day in Stash: 1 card saved", "Your week in Stash: 1 card saved"]
     digest = sender.outbox[0]
     assert "Pricing ideas for launch" in digest["text"] or "Pricing ideas for launch" in digest["html"]
     assert digest["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"

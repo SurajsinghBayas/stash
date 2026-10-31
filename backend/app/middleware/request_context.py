@@ -1,4 +1,4 @@
-"""Request id, access log, body-size cap and the Origin check for state-changing requests."""
+"""Request id, access log, body-size cap, security headers and the Origin check for state-changing requests."""
 
 import logging
 import time
@@ -7,11 +7,28 @@ import uuid
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.config import settings
+from app.errors import AppError
 
 log = logging.getLogger("stash.request")
 
 MAX_JSON_BODY = 1024 * 1024
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+UNCAPPED_PREFIX = "/api/v1/_local_storage/"  # development uploads; S3 uploads never pass through the API
+
+# On every API response. The page itself gets its headers (and the full CSP) from nginx; an API response is never
+# a document, so it may not run scripts, be framed or be sniffed into one. Responses with user data are not cached
+# unless the route chose a cache policy itself (images, public share pages).
+SECURITY_HEADERS = [
+    (b"x-content-type-options", b"nosniff"),
+    (b"x-frame-options", b"DENY"),
+    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+    (b"content-security-policy", b"default-src 'none'; frame-ancestors 'none'; base-uri 'none'"),
+    (b"cross-origin-resource-policy", b"same-origin"),
+]
+
+
+class BodyTooLarge(AppError):
+    status, code = 413, "payload_too_large"
 
 
 def _json_error(code: str, message: str, request_id: str) -> bytes:
@@ -54,23 +71,44 @@ class RequestContextMiddleware:
             self._log(method, path, 403, started, request_id)
             return
 
-        # Cap JSON bodies; uploads go straight to storage and never through this path.
+        # Cap JSON bodies; uploads go straight to storage and never through this path. The declared length is
+        # checked up front, and the bytes actually received are counted too, so a chunked body without a
+        # Content-Length cannot slip past the cap.
+        capped = not path.startswith(UNCAPPED_PREFIX)
         length = headers.get("content-length")
-        if length and length.isdigit() and int(length) > MAX_JSON_BODY and not path.startswith(
-            "/api/v1/_local_storage/"
-        ):
+        if capped and length and length.isdigit() and int(length) > MAX_JSON_BODY:
             await reject(413, "payload_too_large", "Request body is larger than 1 MB")
             self._log(method, path, 413, started, request_id)
             return
+        received, too_large = 0, False
+
+        async def receive_capped() -> Message:
+            nonlocal received, too_large
+            message = await receive()
+            if capped and message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > MAX_JSON_BODY:
+                    too_large = True
+                    raise BodyTooLarge("Request body is larger than 1 MB")
+            return message
 
         async def send_wrapper(message: Message) -> None:
+            if too_large:  # the framework turns the read error into a generic 400; answer with the real reason
+                if message["type"] == "http.response.start":
+                    await reject(413, "payload_too_large", "Request body is larger than 1 MB")
+                return
             if message["type"] == "http.response.start":
                 status_holder["status"] = message["status"]
-                message.setdefault("headers", []).append((b"x-request-id", request_id.encode()))
+                out = message.setdefault("headers", [])
+                present = {k.lower() for k, _ in out}
+                out.append((b"x-request-id", request_id.encode()))
+                out.extend(h for h in SECURITY_HEADERS if h[0] not in present)
+                if b"cache-control" not in present:
+                    out.append((b"cache-control", b"no-store"))
             await send(message)
 
         try:
-            await self.app(scope, receive, send_wrapper)
+            await self.app(scope, receive_capped, send_wrapper)
         finally:
             self._log(method, path, status_holder["status"], started, request_id)
 

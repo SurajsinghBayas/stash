@@ -143,7 +143,10 @@ function CardNodeImpl({ id, data, selected }: NodeProps<CardNodeType>) {
           )}
           {item.kind === "link" && (
             <ToolButton label="Open link" icon={LinkSquare02Icon}
-              onClick={() => window.open(item.content.url, "_blank", "noopener,noreferrer")} />
+              onClick={() => {
+                // The API only stores http(s) links; check again here so no other scheme can ever be opened.
+                if (/^https?:\/\//i.test(item.content.url)) window.open(item.content.url, "_blank", "noopener,noreferrer");
+              }} />
           )}
           <ToolButton label="Remind me" icon={Clock01Icon} onClick={() => a.remind(item)} />
           <ToolButton label="History" icon={WorkHistoryIcon} onClick={() => a.history(item)} />

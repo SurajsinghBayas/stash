@@ -23,7 +23,7 @@ const Mail = () => <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</
 
 export function About() {
   return (
-    <PageShell eyebrow="About" title="We built Stash because we kept losing things."
+    <PageShell seo={{ title: "About", path: "/about", description: "Why we built Stash: one visual canvas for everything you save, an assistant that answers from your own cards, and privacy by default." }} eyebrow="About" title="We built Stash because we kept losing things."
       lead="Twenty open tabs, a notes app, a folder of screenshots and a chat with yourself. Everything was saved; nothing could be found.">
       <Prose>
         <h2>One place for everything you save</h2>
@@ -65,7 +65,7 @@ const TOPICS = [
 
 export function Contact() {
   return (
-    <PageShell eyebrow="Contact" title="Get in touch."
+    <PageShell seo={{ title: "Contact", path: "/contact", description: "Questions, feedback, account or privacy requests: how to reach the people behind Stash." }} eyebrow="Contact" title="Get in touch."
       lead="Questions, bugs, ideas or account requests. A real person reads every message, usually within two working days.">
       <a href={`mailto:${SITE.contactEmail}`}
         className="flex items-center gap-4 rounded-[16px] border border-border bg-surface p-6 transition-colors hover:bg-surface-2">
@@ -94,7 +94,7 @@ export function Contact() {
 
 export function Privacy() {
   return (
-    <PageShell eyebrow="Legal" title="Privacy policy" lead={<p>Last updated {SITE.legalUpdated}. This page explains what Stash collects, why, and the choices you have.</p>}>
+    <PageShell seo={{ title: "Privacy policy", path: "/privacy", description: "What Stash collects, why, how long it is kept, and how to export or delete your data." }} eyebrow="Legal" title="Privacy policy" lead={<p>Last updated {SITE.legalUpdated}. This page explains what Stash collects, why, and the choices you have.</p>}>
       <Prose>
         <h2>The short version</h2>
         <ul>
@@ -196,7 +196,7 @@ export function Privacy() {
 
 export function Terms() {
   return (
-    <PageShell eyebrow="Legal" title="Terms of service" lead={<p>Last updated {SITE.legalUpdated}. By using Stash you agree to these terms.</p>}>
+    <PageShell seo={{ title: "Terms of service", path: "/terms", description: "The terms for using Stash, including acceptable use and your content." }} eyebrow="Legal" title="Terms of service" lead={<p>Last updated {SITE.legalUpdated}. By using Stash you agree to these terms.</p>}>
       <Prose>
         <h2>Your account</h2>
         <p>

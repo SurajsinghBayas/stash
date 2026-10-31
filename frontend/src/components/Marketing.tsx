@@ -2,6 +2,7 @@ import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import { useMe } from "@/lib/queries";
+import { useSeo } from "@/lib/seo";
 import { FOOTER_LINKS, SITE } from "@/lib/site";
 import { setMode, useMode } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -137,13 +138,12 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
 }
 
 /** Title block + readable column for About, Privacy, Terms and Contact. */
-export function PageShell({ eyebrow, title, lead, children, className }: {
+export function PageShell({ eyebrow, title, lead, children, className, seo }: {
   eyebrow?: string; title: string; lead?: ReactNode; children: ReactNode; className?: string;
+  /** Search title, description and path for this page. */
+  seo: { title: string; description: string; path: string };
 }) {
-  useEffect(() => {
-    document.title = `${title} · Stash`;
-    return () => { document.title = "Stash"; };
-  }, [title]);
+  useSeo(seo);
   return (
     <MarketingLayout>
       <div className={cn("mx-auto max-w-[760px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20", className)}>

@@ -11,6 +11,63 @@ SHA="${SHA##* }"  # tolerate "deploy <sha>"
 
 as_stash() { sudo -iu stash bash -c "$1"; }
 
+env_value() {  # env_value KEY: a value from the app's .env, without quotes or a trailing comment
+  sed -n "s/^$1=//p" "$APP/backend/.env" | tail -n1 | sed -e 's/[[:space:]]#.*$//' -e 's/^["'\'']//' -e 's/["'\'']$//' \
+    -e 's/[[:space:]]*$//'
+}
+
+# Render the managed nginx config from deploy/nginx and install it, but only if `nginx -t` accepts it; otherwise put
+# the previous files back. Before the TLS certificate exists the plain-HTTP bootstrap config is kept.
+install_nginx() {
+  local domain bucket region s3 site tmp
+  domain="$(env_value APP_URL | sed -E 's#^https?://##; s#/.*$##')"
+  bucket="$(env_value S3_BUCKET)"
+  region="$(env_value AWS_REGION)"
+  s3=""
+  [[ -n "$bucket" ]] && s3="https://$bucket.s3.${region:-ap-south-1}.amazonaws.com"
+  [[ -n "$domain" ]] || { echo "APP_URL is not set; leaving nginx as it is"; return 0; }
+  if [[ ! -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]]; then
+    echo "no TLS certificate for $domain yet; leaving the bootstrap config"
+    return 0
+  fi
+  tmp="$(mktemp -d)"
+  sed "s#DOMAIN#$domain#g" "$APP/deploy/nginx/stash-tls.conf" > "$tmp/stash"
+  sed "s#S3_ORIGIN#$s3#g" "$APP/deploy/nginx/security-headers.conf" > "$tmp/stash-security-headers.conf"
+  cp "$APP/deploy/nginx/stash-proxy.conf" "$tmp/stash-proxy.conf"
+  cp "$APP/deploy/nginx/stash-limits.conf" "$tmp/stash-limits.conf"
+
+  local -A dest=(
+    [stash]=/etc/nginx/sites-available/stash
+    [stash-security-headers.conf]=/etc/nginx/snippets/stash-security-headers.conf
+    [stash-proxy.conf]=/etc/nginx/snippets/stash-proxy.conf
+    [stash-limits.conf]=/etc/nginx/conf.d/stash-limits.conf
+  )
+  local changed=0 name
+  for name in "${!dest[@]}"; do cmp -s "$tmp/$name" "${dest[$name]}" || changed=1; done
+  if (( ! changed )); then echo "nginx config unchanged"; rm -rf "$tmp"; return 0; fi
+
+  mkdir -p /etc/nginx/snippets /var/backups/stash-nginx
+  for name in "${!dest[@]}"; do
+    [[ -f "${dest[$name]}" ]] && cp -p "${dest[$name]}" "/var/backups/stash-nginx/$name"
+    install -m 644 "$tmp/$name" "${dest[$name]}"
+  done
+  ln -sf /etc/nginx/sites-available/stash /etc/nginx/sites-enabled/stash
+  if nginx -t 2>&1; then
+    systemctl reload nginx
+    echo "nginx config updated"
+  else
+    echo "nginx rejected the new config; restoring the previous one"
+    for name in "${!dest[@]}"; do
+      if [[ -f "/var/backups/stash-nginx/$name" ]]; then cp -p "/var/backups/stash-nginx/$name" "${dest[$name]}"
+      else rm -f "${dest[$name]}"; fi
+    done
+    nginx -t && systemctl reload nginx
+    rm -rf "$tmp"
+    return 1
+  fi
+  rm -rf "$tmp"
+}
+
 exec 9>/var/lock/stash-deploy.lock
 flock -w 600 9 || { echo "another deploy is still running"; exit 1; }
 
@@ -33,6 +90,9 @@ if ! cmp -s "$APP/deploy/systemd/stash-api.service" /etc/systemd/system/stash-ap
   systemctl daemon-reload
 fi
 systemctl restart stash-api stash-worker
+
+echo "==> nginx"
+install_nginx
 
 echo "==> health"
 for _ in $(seq 1 30); do

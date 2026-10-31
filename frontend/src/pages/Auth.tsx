@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/primitives";
 import { api, ApiError, errorMessage } from "@/lib/api";
 import { keys, useProviders } from "@/lib/queries";
+import { useSeo } from "@/lib/seo";
 import type { User } from "@/lib/types";
 
 const OAUTH_ERRORS: Record<string, string> = {
@@ -88,6 +89,7 @@ function useSignedIn() {
 }
 
 export function Login() {
+  useSeo({ title: "Sign in", path: "/login", description: "Sign in to Stash with Google, X or email." });
   const [params] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -145,6 +147,8 @@ export function Login() {
 }
 
 export function Signup() {
+  useSeo({ title: "Create your free account", path: "/signup",
+    description: "Create a free Stash account. Save links, notes, code and images on one canvas and ask it anything." });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");

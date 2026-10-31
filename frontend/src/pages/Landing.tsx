@@ -21,13 +21,14 @@ import {
   TextFontIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { MarketingLayout } from "@/components/Marketing";
 import { Mascot } from "@/components/Mascot";
 import { Button } from "@/components/ui/button";
 import { Icon, Kbd } from "@/components/ui/primitives";
 import { useMe } from "@/lib/queries";
+import { useSeo } from "@/lib/seo";
 import { modKey } from "@/lib/utils";
 
 type IconType = typeof Link01Icon;
@@ -277,7 +278,7 @@ const FAQ: { q: string; a: string }[] = [
 export function Landing() {
   const me = useMe();
   const signedIn = !!me.data;
-  useEffect(() => { document.title = "Stash · Everything you save, on one canvas"; }, []);
+  useSeo({ path: "/" });
 
   const primaryCta = (
     <Button asChild variant="primary" size="lg">

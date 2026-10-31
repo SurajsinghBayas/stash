@@ -34,5 +34,7 @@ sed "s/DOMAIN/$DOMAIN/g" "$HERE/nginx/stash.conf" > /etc/nginx/sites-available/s
 ln -sf /etc/nginx/sites-available/stash /etc/nginx/sites-enabled/stash
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
+# The production TLS config (deploy/nginx/stash-tls.conf, headers, rate limits) is installed by remote-deploy.sh
+# on the first deploy after certbot has issued the certificate.
 
 echo "==> done. Next: put backend/.env in place, run ./deploy/deploy.sh, then certbot (see deploy/README.md)."

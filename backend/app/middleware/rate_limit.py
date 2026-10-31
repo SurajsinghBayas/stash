@@ -11,13 +11,26 @@ from fastapi import Request
 
 from app.errors import RateLimited
 
+PRUNE_EVERY = 1000  # hits between sweeps of idle keys
+MAX_WINDOW_S = 86_400  # no limit in the app uses a longer window
+
 
 class SlidingWindow:
     def __init__(self) -> None:
         self._hits: dict[str, deque[float]] = defaultdict(deque)
+        self._since_prune = 0
+
+    def _prune(self, now: float) -> None:
+        """Drop keys with no recent hits, so a flood of new IPs or emails cannot grow memory without bound."""
+        for key in [k for k, hits in self._hits.items() if not hits or hits[-1] <= now - MAX_WINDOW_S]:
+            del self._hits[key]
 
     def hit(self, key: str, limit: int, window_s: int) -> None:
         now = time.monotonic()
+        self._since_prune += 1
+        if self._since_prune >= PRUNE_EVERY:
+            self._since_prune = 0
+            self._prune(now)
         hits = self._hits[key]
         while hits and hits[0] <= now - window_s:
             hits.popleft()
