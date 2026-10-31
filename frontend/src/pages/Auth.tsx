@@ -171,7 +171,13 @@ export function Signup() {
 
   return (
     <AuthLayout title="Create your Stash" subtitle="One place for every link, note and snippet you mean to come back to."
-      footer={<>Have an account? <Link to="/login" className="text-text underline-offset-4 hover:underline">Sign in</Link></>}>
+      footer={<>
+        Have an account? <Link to="/login" className="text-text underline-offset-4 hover:underline">Sign in</Link>
+        <p className="mt-4 text-[12.5px] text-text-3">
+          By continuing you agree to the <Link to="/terms" className="underline underline-offset-2 hover:text-text">Terms</Link> and{" "}
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-text">Privacy policy</Link>.
+        </p>
+      </>}>
       <OAuthButtons />
       <form onSubmit={submit} noValidate className="grid gap-4">
         <div>

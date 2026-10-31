@@ -112,3 +112,18 @@ async def delete_files(session: AsyncSession, item_id: uuid.UUID) -> None:
     for key in ("storage_key", "display_key", "thumb_key"):
         if item.content.get(key):
             await store.delete(item.content[key])
+
+
+IMAGE_KEYS = ("storage_key", "display_key", "thumb_key")
+
+
+def image_keys(rows) -> list[str]:
+    """Storage keys of every image among (kind, content) rows."""
+    return [content[k] for kind, content in rows if kind == "image" for k in IMAGE_KEYS if content.get(k)]
+
+
+async def queue_object_deletes(session: AsyncSession, keys: list[str], label: str) -> None:
+    """For rows being deleted for good: the files go in the same transaction's job, 300 keys a job."""
+    for start in range(0, len(keys), 300):
+        await enqueue(session, "delete_objects", {"keys": keys[start:start + 300]},
+                      dedupe_key=f"objects:{label}:{start}")

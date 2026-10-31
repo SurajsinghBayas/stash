@@ -1,4 +1,4 @@
-import { ArrowUp01Icon, Cancel01Icon, Delete02Icon, Shield01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUp01Icon, Cancel01Icon, CheckListIcon, Delete02Icon, NoteAddIcon, Shield01Icon } from "@hugeicons/core-free-icons";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { Mascot, type MascotState } from "@/components/Mascot";
@@ -149,13 +149,48 @@ function Answer({ text, sources, onCite }: { text: string; sources: Source[]; on
   );
 }
 
-export function ChatDrawer({ open, onClose, canvasId, onSources, onCite }: {
+type AnswerAction = "save_note" | "checklist";
+
+/** Put an answer on the canvas: as it is, or as a checklist of the actions in it. */
+function AnswerActions({ messageId, onAction }: { messageId: number; onAction: (id: number, a: AnswerAction) => Promise<void> }) {
+  const [busy, setBusy] = useState<AnswerAction | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  async function run(a: AnswerAction) {
+    setBusy(a);
+    setError(null);
+    try {
+      await onAction(messageId, a);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+  return (
+    <div className="mt-2.5">
+      <div className="flex flex-wrap gap-1.5">
+        <Button variant="secondary" size="sm" loading={busy === "save_note"} disabled={!!busy} onClick={() => run("save_note")}
+          className="h-7 gap-1.5 px-2.5 text-[12.5px]">
+          <Icon icon={NoteAddIcon} size={14} /> Save as note
+        </Button>
+        <Button variant="secondary" size="sm" loading={busy === "checklist"} disabled={!!busy} onClick={() => run("checklist")}
+          className="h-7 gap-1.5 px-2.5 text-[12.5px]">
+          <Icon icon={CheckListIcon} size={14} /> Make a checklist
+        </Button>
+      </div>
+      {error && <p role="alert" className="mt-1.5 text-[12.5px] text-danger">{error}</p>}
+    </div>
+  );
+}
+
+export function ChatDrawer({ open, onClose, canvasId, onSources, onCite, onAction }: {
   open: boolean;
   onClose: () => void;
   canvasId: string;
   /** Cards to highlight on the canvas, keyed by citation number. */
   onSources: (sources: Source[]) => void;
   onCite: (source: Source) => void;
+  onAction: (messageId: number, action: AnswerAction) => Promise<void>;
 }) {
   const [scope, setScope] = useState<Scope>("canvas");
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -175,7 +210,7 @@ export function ChatDrawer({ open, onClose, canvasId, onSources, onCite }: {
     api.get<{ data: ChatTurn[] }>(`/chat/history${qs}`)
       // Merge, don't replace: a question asked while history was loading must keep its turn.
       .then((r) => setTurns((cur) => [
-        ...r.data.map((t): ChatTurn => ({ ...t, id: `h-${t.id}`, status: "done" })),
+        ...r.data.map((t): ChatTurn => ({ ...t, id: `h-${t.id}`, message_id: Number(t.id), status: "done" })),
         ...cur.filter((t) => !String(t.id).startsWith("h-")),
       ]))
       .catch(() => {});
@@ -252,8 +287,8 @@ export function ChatDrawer({ open, onClose, canvasId, onSources, onCite }: {
           patchLast((t) => ({ ...t, content: (data as { message: string }).message, status: "error" }));
           setMascot("blocked");
         } else if (event === "done") {
-          const cited = (data as { cited: string[] }).cited;
-          patchLast((t) => ({ ...t, cited, status: t.status === "streaming" ? "done" : t.status }));
+          const { cited, message_id } = data as { cited: string[]; message_id: number | null };
+          patchLast((t) => ({ ...t, cited, message_id, status: t.status === "streaming" ? "done" : t.status }));
           setMascot((m) => (m === "blocked" ? m : cited.length ? "found" : "idle"));
           // Only the cards the answer actually used stay highlighted.
           if (cited.length) onSources(sources.filter((s) => cited.includes(s.item_id)));
@@ -361,6 +396,9 @@ export function ChatDrawer({ open, onClose, canvasId, onSources, onCite }: {
                         <Answer text={t.content} sources={t.sources ?? []} onCite={onCite} />
                         {t.check && !t.check.supported && t.check.note && (
                           <p className="mt-2 text-[12.5px] text-warning">{t.check.note}</p>
+                        )}
+                        {t.status === "done" && t.message_id && t.cited.length > 0 && !busy && (
+                          <AnswerActions messageId={t.message_id} onAction={onAction} />
                         )}
                       </>
                     )}

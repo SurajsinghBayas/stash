@@ -1,4 +1,6 @@
-import { Add01Icon, Delete02Icon, Edit02Icon, MoreHorizontalIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  Add01Icon, Delete02Icon, Edit02Icon, MoreHorizontalIcon, RefreshIcon, Search01Icon,
+} from "@hugeicons/core-free-icons";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -18,8 +20,11 @@ import {
 } from "@/components/ui/primitives";
 import { noteStyle } from "@/canvas/kinds";
 import { errorMessage } from "@/lib/api";
-import { useCanvases, useCreateCanvas, useDeleteCanvas, useMe, useRenameCanvas } from "@/lib/queries";
+import {
+  useCanvases, useCanvasTrash, useCreateCanvas, useDeleteCanvas, useMe, useRenameCanvas, useRestoreCanvas, useTemplates,
+} from "@/lib/queries";
 import type { Canvas, PreviewShape } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
 
 /** A tiny map of the canvas: real card positions, scaled to fit. */
@@ -85,26 +90,102 @@ function CanvasCard({ canvas, onRename, onDelete }: { canvas: Canvas; onRename: 
   );
 }
 
+/** Blank canvas or a starter template. */
+function NewCanvasDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const templates = useTemplates();
+  const create = useCreateCanvas();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function make(key: string | null, title: string) {
+    setBusy(key ?? "blank");
+    try {
+      const c = await create.mutateAsync({ title, template: key ?? undefined });
+      onOpenChange(false);
+      navigate(`/c/${c.id}`);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const option = "flex flex-col items-start rounded-[12px] border border-border p-4 text-left transition-colors hover:border-border-strong hover:bg-surface-2 disabled:opacity-60";
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent title="New canvas" description="Start blank, or with a few cards already laid out." className="sm:max-w-[640px]">
+        <div className="grid max-h-[60vh] gap-2.5 overflow-y-auto sm:grid-cols-2">
+          <button className={cn(option, "border-dashed")} disabled={!!busy} onClick={() => make(null, "Untitled canvas")}>
+            <span className="flex items-center gap-2 text-[14px] font-medium"><Icon icon={Add01Icon} size={16} /> Blank canvas</span>
+            <span className="mt-1 text-[12.5px] text-text-2">An empty board. Paste, drop or write anything.</span>
+            {busy === "blank" && <span className="mt-2 text-[12px] text-text-3">Creating…</span>}
+          </button>
+          {templates.isPending && Array.from({ length: 3 }, (_, i) => <div key={i} className="shimmer h-[88px] rounded-[12px]" />)}
+          {templates.data?.map((t) => (
+            <button key={t.key} className={option} disabled={!!busy} onClick={() => make(t.key, t.title)}>
+              <span className="text-[14px] font-medium">{t.title}</span>
+              <span className="mt-1 text-[12.5px] text-text-2">{t.description}</span>
+              <span className="mt-2 text-[12px] text-text-3">{busy === t.key ? "Creating…" : `${t.cards} starter cards`}</span>
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RecentlyDeleted() {
+  const trash = useCanvasTrash();
+  const restore = useRestoreCanvas();
+  const [open, setOpen] = useState(false);
+  const rows = trash.data ?? [];
+  if (!rows.length) return null;
+  return (
+    <section className="mt-12">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        className="text-[13.5px] font-medium text-text-2 transition-colors hover:text-text">
+        Recently deleted ({rows.length}) {open ? "▾" : "▸"}
+      </button>
+      {open && (
+        <>
+          <p className="mt-1 text-[12.5px] text-text-3">Deleted canvases are kept for 30 days, then removed for good.</p>
+          <ul className="mt-3 grid gap-2 sm:max-w-[560px]">
+            {rows.map((c) => (
+              <li key={c.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface px-4 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-[14px]">{c.title}</p>
+                  <p className="text-[12px] text-text-3 tabular">
+                    {c.item_count} {c.item_count === 1 ? "card" : "cards"} · deleted {timeAgo(c.deleted_at)}
+                  </p>
+                </div>
+                <Button variant="secondary" size="sm" loading={restore.isPending && restore.variables === c.id}
+                  onClick={() => restore.mutate(c.id, {
+                    onSuccess: () => toast.success(`“${c.title}” is back`),
+                    onError: (e) => toast.error(errorMessage(e)),
+                  })}>
+                  <Icon icon={RefreshIcon} size={14} /> Restore
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function Dashboard() {
   const [q, setQ] = useState("");
   const canvases = useCanvases(q.trim());
-  const create = useCreateCanvas();
+  const [creating, setCreating] = useState(false);
   const rename = useRenameCanvas();
   const remove = useDeleteCanvas();
   const me = useMe();
-  const navigate = useNavigate();
   const [renaming, setRenaming] = useState<Canvas | null>(null);
   const [deleting, setDeleting] = useState<Canvas | null>(null);
   const [title, setTitle] = useState("");
 
-  async function newCanvas() {
-    try {
-      const c = await create.mutateAsync("Untitled canvas");
-      navigate(`/c/${c.id}`);
-    } catch (e) {
-      toast.error(errorMessage(e));
-    }
-  }
+  const newCanvas = () => setCreating(true);
 
   async function submitRename(e: FormEvent) {
     e.preventDefault();
@@ -137,7 +218,7 @@ export default function Dashboard() {
                   aria-label="Filter canvases by name" />
               </div>
             )}
-            <Button variant="primary" onClick={newCanvas} loading={create.isPending}>
+            <Button variant="primary" onClick={newCanvas}>
               <Icon icon={Add01Icon} size={16} /> New canvas
             </Button>
           </div>
@@ -154,7 +235,7 @@ export default function Dashboard() {
             <p className="mt-1.5 max-w-[42ch] text-[14px] text-text-2">
               Paste a link, drop an image or jot a note. Stash keeps an eye on all of it and finds it when you ask.
             </p>
-            <Button variant="primary" size="lg" className="mt-6" onClick={newCanvas} loading={create.isPending}>
+            <Button variant="primary" size="lg" className="mt-6" onClick={newCanvas}>
               <Icon icon={Add01Icon} size={16} /> New canvas
             </Button>
           </div>
@@ -168,7 +249,10 @@ export default function Dashboard() {
             ))}
           </ul>
         )}
+        <RecentlyDeleted />
       </main>
+
+      <NewCanvasDialog open={creating} onOpenChange={setCreating} />
 
       <Dialog open={!!renaming} onOpenChange={(o) => !o && setRenaming(null)}>
         <DialogContent title="Rename canvas">
@@ -184,7 +268,7 @@ export default function Dashboard() {
 
       <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <DialogContent title={`Delete “${deleting?.title}”?`}
-          description={`Its ${deleting?.item_count ?? 0} cards and their reminders go with it. This can't be undone.`}>
+          description={`Its ${deleting?.item_count ?? 0} cards go with it and its reminders are cancelled. You can restore it from “Recently deleted” for 30 days.`}>
           <div className="flex justify-end gap-2">
             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
             <Button variant="danger" loading={remove.isPending} onClick={async () => {
@@ -192,7 +276,7 @@ export default function Dashboard() {
               try {
                 await remove.mutateAsync(deleting.id);
                 setDeleting(null);
-                toast.success("Canvas deleted");
+                toast.success("Canvas deleted", { description: "Restore it from “Recently deleted” below." });
               } catch (e) {
                 toast.error(errorMessage(e));
               }

@@ -37,10 +37,13 @@ export function useItemSync(canvasId: string) {
   itemsRef.current = items;
   const pending = useRef(new Map<string, Patch>());
   const creating = useRef(new Set<string>());
+  /** Cards deleted here: a poll response that started before the delete must not bring them back. */
+  const removed = useRef(new Set<string>());
   const inFlight = useRef(false);
   const timer = useRef<number | null>(null);
 
   const upsert = useCallback((list: Item[]) => {
+    list.forEach((it) => removed.current.delete(it.id)); // restored cards are live again
     setItems((prev) => {
       const next = new Map(prev);
       for (const it of list) next.set(it.id, it);
@@ -55,7 +58,7 @@ export function useItemSync(canvasId: string) {
     fetchAllItems(canvasId, ctrl.signal)
       .then((list) => {
         // Merge rather than replace: cards created before the load finished must survive it.
-        setItems((prev) => new Map([...list.map((i): [string, Item] => [i.id, i]), ...prev]));
+        setItems((prev) => new Map([...list.filter((i) => !removed.current.has(i.id)).map((i): [string, Item] => [i.id, i]), ...prev]));
         setLoaded(true);
       })
       .catch((e) => {
@@ -188,20 +191,23 @@ export function useItemSync(canvasId: string) {
     [canvasId, upsert, schedule],
   );
 
-  const remove = useCallback(async (ids: string[]) => {
-    const removed = ids.map((id) => itemsRef.current.get(id)).filter(Boolean) as Item[];
+  /** Deletes cards; resolves with the ids the server actually deleted. */
+  const remove = useCallback(async (ids: string[]): Promise<string[]> => {
+    const gone = ids.map((id) => itemsRef.current.get(id)).filter(Boolean) as Item[];
+    ids.forEach((id) => removed.current.add(id));
     setItems((prev) => {
       const next = new Map(prev);
       ids.forEach((id) => next.delete(id));
       return next;
     });
     ids.forEach((id) => pending.current.delete(id));
-    const results = await Promise.allSettled(ids.map((id) => api.del(`/items/${id}`)));
-    const failed = removed.filter((_, i) => results[i]!.status === "rejected");
+    const results = await Promise.allSettled(gone.map((it) => api.del(`/items/${it.id}`)));
+    const failed = gone.filter((_, i) => results[i]!.status === "rejected");
     if (failed.length) {
       upsert(failed);
       toast.error("Couldn't delete some cards. Try again.");
     }
+    return gone.filter((_, i) => results[i]!.status === "fulfilled").map((it) => it.id);
   }, [upsert]);
 
   /* ---------- poll while the worker is busy with something on this canvas ---------- */
@@ -218,6 +224,7 @@ export function useItemSync(canvasId: string) {
         setItems((prev) => {
           const next = new Map<string, Item>();
           for (const s of server) {
+            if (removed.current.has(s.id)) continue;
             const local = prev.get(s.id);
             next.set(s.id, local && (pending.current.has(s.id) || local.version >= s.version) ? { ...local,
               // Server-owned fields always come from the server, including the summary written after indexing.
@@ -264,5 +271,8 @@ export function useItemSync(canvasId: string) {
     return () => window.removeEventListener("beforeunload", onBefore);
   }, []);
 
-  return { items, loaded, loadError, status, update, create, remove, upsert, flush };
+  /** The latest local copy of a card, without waiting for a render. */
+  const current = useCallback((id: string) => itemsRef.current.get(id), []);
+
+  return { items, loaded, loadError, status, update, create, remove, upsert, flush, current };
 }

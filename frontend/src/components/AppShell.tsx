@@ -5,6 +5,7 @@ import {
   Search01Icon,
   Settings01Icon,
   Sun03Icon,
+  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
@@ -13,6 +14,7 @@ import { api } from "@/lib/api";
 import { keys, useMe } from "@/lib/queries";
 import { setMode, useMode } from "@/lib/theme";
 import { modKey } from "@/lib/utils";
+import { SiteFooter } from "./Marketing";
 import { QuickFind } from "./QuickFind";
 import { Mascot } from "./Mascot";
 import { Button } from "./ui/button";
@@ -24,8 +26,8 @@ export function Avatar({ name, src, size = 28 }: { name: string; src?: string | 
     <img src={src} alt="" width={size} height={size} referrerPolicy="no-referrer"
       className="rounded-full object-cover ring-1 ring-border" style={{ width: size, height: size }} />
   ) : (
-    <span className="grid place-items-center rounded-full bg-surface-3 text-[11px] font-semibold text-text-2"
-      style={{ width: size, height: size }}>{initials || "S"}</span>
+    <span className="grid place-items-center rounded-full bg-surface-3 font-semibold text-text-2"
+      style={{ width: size, height: size, fontSize: Math.max(11, Math.round(size * 0.36)) }}>{initials || "S"}</span>
   );
 }
 
@@ -58,6 +60,7 @@ export function AccountMenu() {
           <span className="block truncate">{user.email}</span>
         </MenuLabel>
         <MenuSeparator />
+        <MenuItem icon={UserCircleIcon} onSelect={() => navigate("/profile")}>Profile</MenuItem>
         <MenuItem icon={Clock01Icon} onSelect={() => navigate("/reminders")}>Reminders</MenuItem>
         <MenuItem icon={Settings01Icon} onSelect={() => navigate("/settings")}>Settings</MenuItem>
         <MenuItem icon={mode === "dark" ? Sun03Icon : Moon02Icon}
@@ -88,14 +91,20 @@ export function AppShell({ children, title }: { children: ReactNode; title?: Rea
   const [findOpen, setFindOpen] = useState(false);
   useQuickFindShortcut(() => setFindOpen(true));
   return (
-    <div className="min-h-dvh">
+    <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-20 border-b border-border bg-bg/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
-          <Link to="/app" className="flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em]" aria-label="Your canvases">
+          <Link to="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em]" aria-label="Stash home">
             <Mascot size={26} />
             <span className="hidden sm:inline">Stash</span>
           </Link>
-          {title && <span className="text-text-3">/</span>}
+          {title && (
+            <>
+              <span className="text-text-3">/</span>
+              <Link to="/app" className="hidden text-[14px] text-text-2 hover:text-text sm:inline">Canvases</Link>
+              <span className="hidden text-text-3 sm:inline">/</span>
+            </>
+          )}
           <div className="min-w-0 flex-1 truncate text-[14px] font-medium">{title}</div>
           <Button variant="secondary" size="sm" onClick={() => setFindOpen(true)} className="gap-2 text-text-2"
             aria-label="Find a card">
@@ -106,7 +115,8 @@ export function AppShell({ children, title }: { children: ReactNode; title?: Rea
           <AccountMenu />
         </div>
       </header>
-      {children}
+      <div className="flex-1">{children}</div>
+      <SiteFooter compact />
       <QuickFind open={findOpen} onOpenChange={setFindOpen} />
     </div>
   );

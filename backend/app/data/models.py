@@ -46,6 +46,7 @@ class User(Base):
     digest_hour: Mapped[int] = mapped_column(SmallInteger, default=8)
     chat_blocked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     memory_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    inbound_token: Mapped[str | None] = mapped_column(Text, unique=True)
     suspended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _now()
 
@@ -89,6 +90,8 @@ class Canvas(Base):
     created_at: Mapped[datetime] = _now()
     updated_at: Mapped[datetime] = _now()
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    share_token: Mapped[str | None] = mapped_column(Text, unique=True)
+    shared_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Item(Base):
@@ -117,6 +120,16 @@ class Item(Base):
     created_at: Mapped[datetime] = _now()
     updated_at: Mapped[datetime] = _now()
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ItemVersion(Base):
+    __tablename__ = "item_versions"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("items.id", ondelete="CASCADE"))
+    owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    version: Mapped[int] = mapped_column(Integer)
+    content: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = _now()
 
 
 class ChatMessage(Base):

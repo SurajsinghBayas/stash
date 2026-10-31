@@ -40,8 +40,8 @@ from app.services.mail import sender  # noqa: E402
 
 BACKEND = Path(__file__).resolve().parents[1]
 TABLES = ("answer_cache", "memories", "embedding_cache", "chunks", "link_cache", "digest_runs", "reminders",
-          "ai_requests", "moderation_events", "chat_messages", "jobs", "items", "canvases", "email_tokens",
-          "refresh_tokens", "oauth_accounts", "users")
+          "ai_requests", "moderation_events", "chat_messages", "jobs", "item_versions", "items", "canvases",
+          "email_tokens", "refresh_tokens", "oauth_accounts", "users")
 
 
 @pytest.fixture(scope="session", autouse=True)

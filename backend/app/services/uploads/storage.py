@@ -24,10 +24,15 @@ class S3Storage(Storage):
         from botocore.config import Config
 
         self.bucket = bucket
+        # The regional endpoint, not s3.amazonaws.com: browsers PUT straight to presigned URLs, and S3 answers the
+        # global name for a non-us-east-1 bucket with a redirect that a CORS request cannot follow.
+        endpoint = settings.aws_endpoint_url_s3 or f"https://s3.{settings.aws_region}.amazonaws.com"
         self.client = boto3.client(
-            "s3", region_name=settings.aws_region, endpoint_url=settings.aws_endpoint_url_s3,
-            aws_access_key_id=settings.aws_access_key_id, aws_secret_access_key=settings.aws_secret_access_key,
-            config=Config(signature_version="s3v4", connect_timeout=5, read_timeout=20),
+            "s3", region_name=settings.aws_region, endpoint_url=endpoint,
+            aws_access_key_id=settings.aws_access_key_id or None,
+            aws_secret_access_key=settings.aws_secret_access_key or None,
+            config=Config(signature_version="s3v4", connect_timeout=5, read_timeout=20,
+                          s3={"addressing_style": "auto" if settings.aws_endpoint_url_s3 else "virtual"}),
         )
 
     async def presign_put(self, key: str, mime: str, size: int) -> dict:

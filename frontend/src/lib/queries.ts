@@ -1,6 +1,8 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "./api";
-import type { Canvas, Hit, Item, MemoryFact, Page, Reminder, Usage, User } from "./types";
+import type {
+  Canvas, DeletedCanvas, Hit, Inbound, Item, ItemVersion, MemoryFact, Page, Profile, Reminder, Template, Usage, User,
+} from "./types";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +23,12 @@ export const keys = {
   storage: ["storage"] as const,
   usage: ["usage"] as const,
   providers: ["providers"] as const,
+  profile: ["profile"] as const,
+  templates: ["templates"] as const,
+  canvasTrash: ["canvas-trash"] as const,
+  itemTrash: (id: string) => ["item-trash", id] as const,
+  versions: (id: string) => ["versions", id] as const,
+  inbound: ["inbound"] as const,
 };
 
 export function useMe() {
@@ -77,7 +85,8 @@ export async function fetchAllItems(canvasId: string, signal?: AbortSignal): Pro
 export function useCreateCanvas() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (title: string) => (await api.post<{ data: Canvas }>("/canvases", { title })).data,
+    mutationFn: async ({ title, template }: { title: string; template?: string }) =>
+      (await api.post<{ data: Canvas }>("/canvases", template ? { title, template } : { title })).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["canvases"] }),
   });
 }
@@ -98,7 +107,69 @@ export function useDeleteCanvas() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.del(`/canvases/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["canvases"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["canvases"] });
+      qc.invalidateQueries({ queryKey: keys.canvasTrash });
+    },
+  });
+}
+
+export function useTemplates() {
+  return useQuery({
+    queryKey: keys.templates,
+    queryFn: async () => (await api.get<{ data: Template[] }>("/canvases/templates")).data,
+    staleTime: Infinity,
+  });
+}
+
+export function useCanvasTrash() {
+  return useQuery({
+    queryKey: keys.canvasTrash,
+    queryFn: async () => (await api.get<{ data: DeletedCanvas[] }>("/canvases/trash")).data,
+  });
+}
+
+export function useRestoreCanvas() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => (await api.post<{ data: Canvas }>(`/canvases/${id}/restore`)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["canvases"] });
+      qc.invalidateQueries({ queryKey: keys.canvasTrash });
+    },
+  });
+}
+
+export function useItemTrash(canvasId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: keys.itemTrash(canvasId),
+    queryFn: async () => (await api.get<{ data: (Item & { deleted_at: string })[] }>(`/canvases/${canvasId}/trash`)).data,
+    enabled,
+    staleTime: 0,
+  });
+}
+
+export function useVersions(itemId: string | null) {
+  return useQuery({
+    queryKey: keys.versions(itemId ?? ""),
+    queryFn: async () => (await api.get<{ data: ItemVersion[] }>(`/items/${itemId}/versions`)).data,
+    enabled: !!itemId,
+    staleTime: 0,
+  });
+}
+
+export function useInbound() {
+  return useQuery({
+    queryKey: keys.inbound,
+    queryFn: async () => (await api.get<{ data: Inbound }>("/users/me/inbound")).data,
+  });
+}
+
+export function useRotateInbound() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post<{ data: Inbound }>("/users/me/inbound")).data,
+    onSuccess: (d) => qc.setQueryData(keys.inbound, d),
   });
 }
 
@@ -173,5 +244,12 @@ export function useStorage() {
     queryKey: keys.storage,
     queryFn: async () =>
       (await api.get<{ data: { used_bytes: number; quota_bytes: number } }>("/users/me/storage")).data,
+  });
+}
+
+export function useProfile() {
+  return useQuery({
+    queryKey: keys.profile,
+    queryFn: async () => (await api.get<{ data: Profile }>("/users/me/profile")).data,
   });
 }

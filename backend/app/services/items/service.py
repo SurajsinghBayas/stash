@@ -1,15 +1,17 @@
 """Card rules: content validation, indexing triggers, optimistic concurrency."""
 
 import uuid
+from datetime import timedelta
 from urllib.parse import urlsplit
 
 from pydantic import ValidationError
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.data.jobs import enqueue
-from app.data.models import Canvas, Item
-from app.errors import NotFound, ValidationFailed
+from app.data.models import Canvas, Item, ItemVersion
+from app.errors import AppError, Conflict, NotFound, ValidationFailed
 from app.schemas import CONTENT_MODELS, ItemIn, ItemOut, ItemPatch
 from app.services.items.text import normalize_url, search_text, text_hash
 from app.services.safety.local import is_adult_domain
@@ -19,6 +21,10 @@ SERVER_LINK_FIELDS = {"title", "description", "image", "site_name", "favicon", "
                       "blocked_domain"}
 SERVER_IMAGE_FIELDS = {"storage_key", "thumb_key", "display_key", "mime", "bytes", "width", "height", "filename",
                        "upload_state"}
+
+RETENTION = timedelta(days=30)  # deleted cards and canvases can be restored for this long, then they are purged
+MAX_VERSIONS = 30  # history rows kept per card
+VERSION_GAP = "2 minutes"  # edits closer together than this are one history entry (autosave sends many patches)
 
 
 def item_out(item: Item) -> dict:
@@ -130,7 +136,10 @@ async def patch_items(session: AsyncSession, owner_id: uuid.UUID, canvas_id: uui
                 setattr(item, field, value)
         if patch.content is not None:
             old_norm = item.content.get("url_norm")
+            before = item.content
             item.content = _validated_content(item.kind, patch.content, existing=item.content)
+            if _editable(item.kind, item.content) != _editable(item.kind, before):
+                await _record_version(session, item, before)
             if item.kind == "link" and _prepare_link(item, old_norm):
                 await enqueue(session, "fetch_link", {"item_id": str(item.id)},
                               dedupe_key=f"fetch:{item.id}:{item.version + 1}")
@@ -147,19 +156,147 @@ async def patch_items(session: AsyncSession, owner_id: uuid.UUID, canvas_id: uui
 
 
 async def delete_item(session: AsyncSession, owner_id: uuid.UUID, item_id: uuid.UUID) -> None:
+    """Soft delete: the card goes to the canvas trash for RETENTION, then the purge job removes it and its files."""
     item = await session.scalar(select(Item).where(Item.id == item_id, Item.owner_id == owner_id,
                                                    Item.deleted_at.is_(None)))
     if not item:
         raise NotFound("Card not found")
     item.deleted_at = func.now()
     await session.execute(update(Canvas).where(Canvas.id == item.canvas_id).values(updated_at=func.now()))
-    if item.kind == "image":
-        await enqueue(session, "delete_image", {"item_id": str(item.id)}, dedupe_key=f"delimg:{item.id}")
     from app.data.models import Reminder
 
     await session.execute(update(Reminder).where(Reminder.item_id == item.id, Reminder.state == "pending")
                           .values(state="cancelled"))
     await session.commit()
+
+
+# ---------- history ----------
+
+def _server_fields(kind: str) -> set[str]:
+    return SERVER_LINK_FIELDS if kind == "link" else SERVER_IMAGE_FIELDS if kind == "image" else set()
+
+
+def _editable(kind: str, content: dict) -> dict:
+    """The part of a card's content the person wrote (what history keeps and restores)."""
+    server = _server_fields(kind)
+    return {k: v for k, v in content.items() if k not in server}
+
+
+async def _record_version(session: AsyncSession, item: Item, content: dict, *, force: bool = False) -> None:
+    if not force and await session.scalar(text(
+            f"select exists(select 1 from item_versions where item_id = :i and created_at > now() - interval "
+            f"'{VERSION_GAP}')"), {"i": item.id}):
+        return  # still the same editing session: the snapshot from its start is already kept
+    session.add(ItemVersion(item_id=item.id, owner_id=item.owner_id, version=item.version,
+                            content=_editable(item.kind, content)))
+    await session.flush()
+    await session.execute(text(
+        "delete from item_versions where item_id = :i and id not in "
+        "(select id from item_versions where item_id = :i order by id desc limit :n)"),
+        {"i": item.id, "n": MAX_VERSIONS})
+
+
+async def _owned_item(session: AsyncSession, owner_id: uuid.UUID, item_id: uuid.UUID, *, deleted: bool = False,
+                      lock: bool = False) -> Item:
+    q = select(Item).where(Item.id == item_id, Item.owner_id == owner_id,
+                           Item.deleted_at.is_not(None) if deleted else Item.deleted_at.is_(None))
+    item = await session.scalar(q.with_for_update() if lock else q)
+    if not item:
+        raise NotFound("Card not found")
+    return item
+
+
+async def list_versions(session: AsyncSession, owner_id: uuid.UUID, item_id: uuid.UUID) -> list[dict]:
+    item = await _owned_item(session, owner_id, item_id)
+    rows = await session.scalars(select(ItemVersion).where(ItemVersion.item_id == item.id)
+                                 .order_by(ItemVersion.id.desc()).limit(MAX_VERSIONS))
+    return [{"id": r.id, "version": r.version, "content": r.content, "created_at": r.created_at.isoformat()}
+            for r in rows]
+
+
+async def restore_version(session: AsyncSession, owner_id: uuid.UUID, item_id: uuid.UUID, version_id: int,
+                          expected_version: int) -> Item:
+    item = await _owned_item(session, owner_id, item_id, lock=True)
+    if item.version != expected_version:
+        raise Conflict("This card changed in the meantime. Reload and try again.")
+    row = await session.scalar(select(ItemVersion).where(ItemVersion.id == version_id, ItemVersion.item_id == item.id))
+    if not row:
+        raise NotFound("That version no longer exists")
+    await _record_version(session, item, item.content, force=True)  # restoring is itself undoable
+    old_norm = item.content.get("url_norm")
+    restored = {k: v for k, v in row.content.items() if k not in _server_fields(item.kind)}
+    item.content = _validated_content(item.kind, restored, existing=item.content)
+    if item.kind == "link" and _prepare_link(item, old_norm):
+        await enqueue(session, "fetch_link", {"item_id": str(item.id)},
+                      dedupe_key=f"fetch:{item.id}:{item.version + 1}")
+    await reindex_if_needed(session, item)
+    item.version += 1
+    item.updated_at = func.now()
+    await session.execute(update(Canvas).where(Canvas.id == item.canvas_id).values(updated_at=func.now()))
+    await session.commit()
+    await session.refresh(item)
+    return item
+
+
+# ---------- trash ----------
+
+async def list_trash(session: AsyncSession, owner_id: uuid.UUID, canvas_id: uuid.UUID) -> list[Item]:
+    canvas = await get_canvas(session, owner_id, canvas_id)
+    return list(await session.scalars(
+        select(Item).where(Item.canvas_id == canvas.id, Item.deleted_at.is_not(None),
+                           Item.deleted_at > func.now() - RETENTION)
+        .order_by(Item.deleted_at.desc()).limit(200)))
+
+
+async def _storage_used(session: AsyncSession, owner_id: uuid.UUID) -> int:
+    used = await session.scalar(select(func.coalesce(func.sum(Item.bytes), 0))
+                                .where(Item.owner_id == owner_id, Item.deleted_at.is_(None)))
+    return int(used or 0)
+
+
+async def restore_item(session: AsyncSession, owner_id: uuid.UUID, item_id: uuid.UUID) -> Item:
+    item = await _owned_item(session, owner_id, item_id, deleted=True, lock=True)
+    canvas = await session.scalar(select(Canvas).where(Canvas.id == item.canvas_id, Canvas.owner_id == owner_id))
+    if not canvas or canvas.deleted_at:
+        raise NotFound("Restore the canvas first")
+    quota = settings.user_storage_quota_mb * 1024 * 1024
+    if item.bytes and await _storage_used(session, owner_id) + item.bytes > quota:
+        raise AppError("Your storage is full. Delete some images to restore this one.", code="quota_exceeded",
+                       status=409)
+    item.deleted_at = None
+    item.version += 1
+    item.updated_at = func.now()
+    canvas.updated_at = func.now()
+    await session.commit()
+    await session.refresh(item)
+    return item
+
+
+async def list_canvas_trash(session: AsyncSession, owner_id: uuid.UUID) -> list[Canvas]:
+    return list(await session.scalars(
+        select(Canvas).where(Canvas.owner_id == owner_id, Canvas.deleted_at.is_not(None),
+                             Canvas.deleted_at > func.now() - RETENTION)
+        .order_by(Canvas.deleted_at.desc()).limit(100)))
+
+
+async def restore_canvas(session: AsyncSession, owner_id: uuid.UUID, canvas_id: uuid.UUID) -> Canvas:
+    canvas = await session.scalar(select(Canvas).where(Canvas.id == canvas_id, Canvas.owner_id == owner_id,
+                                                       Canvas.deleted_at.is_not(None)).with_for_update())
+    if not canvas:
+        raise NotFound("Canvas not found")
+    # The cards deleted together with the canvas share its deletion timestamp (one transaction, one now()).
+    freed = await session.scalar(select(func.coalesce(func.sum(Item.bytes), 0))
+                                 .where(Item.canvas_id == canvas.id, Item.deleted_at == canvas.deleted_at))
+    if freed and await _storage_used(session, owner_id) + int(freed) > settings.user_storage_quota_mb * 1024 * 1024:
+        raise AppError("Your storage is full. Delete some images to restore this canvas.", code="quota_exceeded",
+                       status=409)
+    await session.execute(update(Item).where(Item.canvas_id == canvas.id, Item.deleted_at == canvas.deleted_at)
+                          .values(deleted_at=None, version=Item.version + 1, updated_at=func.now()))
+    canvas.deleted_at = None
+    canvas.updated_at = func.now()
+    await session.commit()
+    await session.refresh(canvas)
+    return canvas
 
 
 async def find_duplicate_link(session: AsyncSession, owner_id: uuid.UUID, url: str) -> dict | None:

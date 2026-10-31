@@ -1,18 +1,21 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, Input, Switch } from "@/components/ui/primitives";
-import { api, errorMessage } from "@/lib/api";
-import { useForgetAllMemories, useForgetMemory, useMe, useMemories, useStorage, useUpdateMe, useUsage } from "@/lib/queries";
+import { api, errorMessage, request } from "@/lib/api";
+import {
+  useForgetAllMemories, useForgetMemory, useInbound, useMe, useMemories, useRotateInbound, useStorage, useUpdateMe, useUsage,
+} from "@/lib/queries";
 import { setMode, useMode } from "@/lib/theme";
 import type { User } from "@/lib/types";
 import { cn, formatBytes } from "@/lib/utils";
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
-    <section className="grid gap-4 border-b border-border py-8 last:border-0 md:grid-cols-[240px_1fr] md:gap-10">
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4 border-b border-border py-8 last:border-0 md:grid-cols-[240px_minmax(0,1fr)] md:gap-10">
       <div>
         <h2 className="text-[14px] font-semibold">{title}</h2>
         {description && <p className="mt-1 text-[13px] text-text-2">{description}</p>}
@@ -24,7 +27,7 @@ function Section({ title, description, children }: { title: string; description?
 
 function Row({ label, hint, htmlFor, children }: { label: string; hint?: string; htmlFor?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-md border border-border bg-surface px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-md border border-border bg-surface px-4 py-3">
       <div className="min-w-0">
         <label htmlFor={htmlFor} className="block text-[14px] font-medium">{label}</label>
         {hint && <p className="mt-0.5 text-[12.5px] text-text-2">{hint}</p>}
@@ -57,6 +60,109 @@ function hourLabel(h: number) {
   return new Date(2000, 0, 1, h).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+function SaveByEmail({ user }: { user: User }) {
+  const inbound = useInbound();
+  const rotate = useRotateInbound();
+  const address = inbound.data?.address;
+  const run = (message: string) => rotate.mutate(undefined, {
+    onSuccess: () => toast.success(message), onError: (e) => toast.error(errorMessage(e)),
+  });
+  if (inbound.isPending) return <div className="shimmer h-14 rounded-md" />;
+  if (!inbound.data?.enabled) {
+    return <p className="text-[13px] text-text-2">Save by email isn't turned on for this server yet.</p>;
+  }
+  if (!user.email || !user.email_verified) {
+    return <p className="rounded-md bg-warning-soft px-3 py-2 text-[13px] text-warning">Verify your email first. Stash only saves mail sent from it.</p>;
+  }
+  if (!address) {
+    return (
+      <Row label="Your Stash address" hint="Forward a newsletter or email yourself a link. It lands on a canvas called Inbox.">
+        <Button variant="secondary" size="sm" loading={rotate.isPending} onClick={() => run("Address created")}>Create address</Button>
+      </Row>
+    );
+  }
+  return (
+    <div className="grid gap-2">
+      <div className="flex gap-2">
+        <Input readOnly value={address} aria-label="Your Stash email address" onFocus={(e) => e.target.select()} className="h-9 text-[13px]" />
+        <Button variant="secondary" onClick={() => navigator.clipboard.writeText(address).then(() => toast.success("Copied"))}>Copy</Button>
+      </div>
+      <p className="text-[12.5px] text-text-3">
+        Send from {user.email}. Links become link cards and the rest becomes a note on your Inbox canvas. Mail from any other address is refused.
+      </p>
+      <div>
+        <Button variant="ghost" size="sm" loading={rotate.isPending} onClick={() => run("New address created. The old one no longer works.")}>
+          Get a new address
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+async function downloadExport() {
+  try {
+    const res = await request<Response>("/users/me/export", { raw: true });
+    const blob = await res.blob();
+    const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? "stash-export.json";
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast.success("Your export is downloading");
+  } catch (e) {
+    toast.error(errorMessage(e));
+  }
+}
+
+function DeleteAccountDialog({ open, onOpenChange, hasPassword }: { open: boolean; onOpenChange: (o: boolean) => void; hasPassword: boolean }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { if (!open) { setPassword(""); setConfirm(""); setError(null); } }, [open]);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await request("/users/me", { method: "DELETE", body: { confirm: "DELETE", ...(hasPassword ? { password } : {}) } });
+      qc.clear();
+      qc.setQueryData(["me"], null);
+      navigate("/", { replace: true });
+      toast.success("Your account and everything in it has been deleted.");
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent title="Delete your account?"
+        description="Every canvas, card, image, reminder, chat and memory is deleted right away. This can't be undone. Download an export first if you want a copy.">
+        <form onSubmit={submit} className="grid gap-3">
+          {hasPassword && (
+            <Input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password" aria-label="Your password" required />
+          )}
+          <Input value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Type DELETE to confirm"
+            aria-label="Type DELETE to confirm" autoComplete="off" />
+          {error && <p role="alert" className="text-[13px] text-danger">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
+            <Button type="submit" variant="danger" loading={busy} disabled={confirm !== "DELETE" || (hasPassword && !password)}>
+              Delete account
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Settings() {
   const me = useMe();
   const user = me.data as User;
@@ -68,6 +174,7 @@ export default function Settings() {
   const [name, setName] = useState(user.display_name ?? "");
   const [confirmOut, setConfirmOut] = useState(false);
   const [confirmForget, setConfirmForget] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const memories = useMemories();
   const forget = useForgetMemory();
   const forgetAll = useForgetAllMemories();
@@ -136,6 +243,17 @@ export default function Settings() {
           </Row>
         </Section>
 
+        <Section title="Save by email" description="A private address for your Stash. Anything you send or forward to it is saved for you.">
+          <SaveByEmail user={user} />
+        </Section>
+
+        <Section title="Save from your phone" description="Share links and text to Stash from other apps.">
+          <p className="text-[13.5px] text-text-2">
+            On Android, open Stash in Chrome and choose <span className="text-text">Install app</span> (or Add to Home screen).
+            Stash then shows up in the share menu of any app. On iPhone, use Save by email above.
+          </p>
+        </Section>
+
         <Section title="Assistant" description="Every account gets the same monthly allowance. Chat, reading cards, memory and digests share it, and it resets on the 1st.">
           <AssistantAllowance used={usage.data?.used_tokens ?? 0} limit={usage.data?.limit_tokens ?? 0} />
         </Section>
@@ -202,6 +320,15 @@ export default function Settings() {
             <Button variant="outline" size="sm" onClick={() => setConfirmOut(true)}>Sign out all</Button>
           </Row>
         </Section>
+
+        <Section title="Your data" description="Deleted cards and canvases are kept for 30 days so you can restore them, then removed for good.">
+          <Row label="Export everything" hint="Canvases, cards, reminders, chats and memory as one JSON file. Image links work for an hour.">
+            <Button variant="outline" size="sm" onClick={downloadExport}>Download</Button>
+          </Row>
+          <Row label="Delete account" hint="Removes your account and everything in it right away.">
+            <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>Delete…</Button>
+          </Row>
+        </Section>
       </main>
 
       <Dialog open={confirmForget} onOpenChange={setConfirmForget}>
@@ -215,6 +342,8 @@ export default function Settings() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DeleteAccountDialog open={confirmDelete} onOpenChange={setConfirmDelete} hasPassword={user.has_password} />
 
       <Dialog open={confirmOut} onOpenChange={setConfirmOut}>
         <DialogContent title="Sign out everywhere?" description="You'll need to sign in again on every device.">

@@ -4,6 +4,7 @@ import {
   Delete02Icon,
   Edit02Icon,
   LinkSquare02Icon,
+  WorkHistoryIcon,
   TextFontIcon,
 } from "@hugeicons/core-free-icons";
 import { NodeResizeControl, NodeResizer, NodeToolbar, Position, type Node, type NodeProps } from "@xyflow/react";
@@ -26,6 +27,7 @@ export interface CanvasActions {
   remove: (ids: string[]) => void;
   remind: (item: Item) => void;
   openImage: (item: Item) => void;
+  history: (item: Item) => void;
   singleSelection: boolean;
 }
 
@@ -144,6 +146,7 @@ function CardNodeImpl({ id, data, selected }: NodeProps<CardNodeType>) {
               onClick={() => window.open(item.content.url, "_blank", "noopener,noreferrer")} />
           )}
           <ToolButton label="Remind me" icon={Clock01Icon} onClick={() => a.remind(item)} />
+          <ToolButton label="History" icon={WorkHistoryIcon} onClick={() => a.history(item)} />
           <ToolButton label="Copy" icon={Copy01Icon}
             onClick={() => navigator.clipboard.writeText(plainText(item)).then(() => toast.success("Copied"))} />
           <span className="mx-0.5 h-5 w-px bg-border" />

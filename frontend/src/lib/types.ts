@@ -22,6 +22,18 @@ export interface User {
   created_at: string;
 }
 
+export interface Profile {
+  sign_in: { password: boolean; providers: string[] };
+  member_since: string;
+  counts: {
+    canvases: number;
+    cards: number;
+    by_kind: Partial<Record<Kind, number>>;
+    upcoming_reminders: number;
+    questions_asked: number;
+  };
+}
+
 export interface PreviewShape {
   kind: Kind;
   x: number;
@@ -34,6 +46,7 @@ export interface PreviewShape {
 export interface Canvas {
   id: string;
   title: string;
+  share_token?: string | null;
   viewport: { x: number; y: number; zoom: number };
   item_count: number;
   preview: PreviewShape[];
@@ -132,6 +145,8 @@ export interface ChatTurn {
   check?: ChatCheck;
   status?: "streaming" | "blocked" | "error" | "done";
   created_at?: string;
+  /** Server id of a saved answer, for actions like "save as note". */
+  message_id?: number | null;
 }
 
 export interface MemoryFact {
@@ -144,4 +159,34 @@ export interface MemoryFact {
 export interface Page<T> {
   data: T[];
   page: { limit: number; next_cursor: string | null };
+}
+
+export interface Template {
+  key: string;
+  title: string;
+  description: string;
+  cards: number;
+}
+
+export interface DeletedCanvas extends Canvas {
+  deleted_at: string;
+}
+
+export interface ItemVersion {
+  id: number;
+  version: number;
+  content: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface Inbound {
+  enabled: boolean;
+  address: string | null;
+}
+
+export interface SharedCanvas {
+  title: string;
+  updated_at: string;
+  items: { id: string; kind: Kind; x: number; y: number; w: number | null; h: number | null; z: number;
+    content: Record<string, unknown> }[];
 }

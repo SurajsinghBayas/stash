@@ -14,7 +14,7 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, timedelta
 
 import httpx
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -26,13 +26,14 @@ from app.services.agents import cache as agent_cache
 from app.services.agents import ingest, memory
 from app.services.ai import client as ai
 from app.services.digests import service as digests
-from app.services.items.service import reindex_if_needed
+from app.services.items.service import RETENTION, reindex_if_needed
 from app.services.items.text import snippet_of, title_of
 from app.services.links.fetch import BlockedURL, fetch_page
 from app.services.mail import sender, templates
 from app.services.reminders.service import queue_due
 from app.services.safety.service import check_text, from_checked_item
 from app.services.uploads import images
+from app.services.uploads.storage import storage
 
 log = logging.getLogger("stash.worker")
 
@@ -174,6 +175,13 @@ async def delete_image(session: AsyncSession, payload: dict, job: dict) -> None:
     await images.delete_files(session, uuid.UUID(payload["item_id"]))
 
 
+async def delete_objects(session: AsyncSession, payload: dict, job: dict) -> None:
+    """Storage files of rows that no longer exist (purged cards, deleted accounts). Deleting is idempotent."""
+    store = storage()
+    for key in payload["keys"]:
+        await store.delete(key)
+
+
 async def remember(session: AsyncSession, payload: dict, job: dict) -> None:
     await memory.extract(session, uuid.UUID(payload["user_id"]), int(payload["message_id"]))
 
@@ -253,6 +261,7 @@ HANDLERS: dict[str, Handler] = {
     "index_item": index_item,
     "process_image": process_image,
     "delete_image": delete_image,
+    "delete_objects": delete_objects,
     "send_email": send_email,
     "remember": remember,
 }
@@ -323,8 +332,35 @@ async def tick(now: datetime | None = None) -> None:
         if _due("prune", timedelta(hours=1), now):
             await jobs.prune(session)
             await agent_cache.prune(session)
+            await purge_deleted(session, now)
         if _due("understand", timedelta(minutes=15), now) and settings.chat_ai_configured:
             await queue_understanding(session, now)
+
+
+async def purge_deleted(session: AsyncSession, now: datetime, batch: int = 500) -> int:
+    """Trash is kept for RETENTION, then cards (with their files and history) and canvases are gone for good.
+    Rows and the file-delete job are committed together, so files are never orphaned by a crash."""
+    cutoff = now - RETENTION
+    purged = 0
+    while True:
+        rows = (await session.execute(
+            select(Item.id, Item.kind, Item.content).where(
+                (Item.deleted_at < cutoff)
+                | Item.canvas_id.in_(select(Canvas.id).where(Canvas.deleted_at < cutoff)))
+            .limit(batch))).all()
+        if not rows:
+            break
+        ids = [row.id for row in rows]
+        keys = images.image_keys((r.kind, r.content) for r in rows)
+        await images.queue_object_deletes(session, keys, f"purge:{ids[0]}")
+        await session.execute(delete(Item).where(Item.id.in_(ids)))
+        await session.commit()
+        purged += len(ids)
+    await session.execute(delete(Canvas).where(Canvas.deleted_at < cutoff))
+    await session.commit()
+    if purged:
+        log.info("purged deleted cards", extra={"count": purged})
+    return purged
 
 
 async def queue_understanding(session: AsyncSession, now: datetime, limit: int = 50) -> None:

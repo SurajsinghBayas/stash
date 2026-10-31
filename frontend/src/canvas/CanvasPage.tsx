@@ -2,11 +2,13 @@ import {
   AiChat02Icon,
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
+  Delete03Icon,
   FullScreenIcon,
   Image01Icon,
   Link01Icon,
   Note01Icon,
   Search01Icon,
+  Share08Icon,
   SourceCodeIcon,
   TextFontIcon,
 } from "@hugeicons/core-free-icons";
@@ -20,6 +22,7 @@ import {
   type NodeChange,
   type Viewport,
 } from "@xyflow/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
@@ -32,9 +35,10 @@ import { Icon, Input, Kbd, Popover, PopoverAnchor, PopoverContent, Tip } from "@
 import { Spinner } from "@/components/ui/spinner";
 import { ChatDrawer, type Source } from "@/chat/ChatDrawer";
 import { api, errorMessage } from "@/lib/api";
-import { useCanvas, useRenameCanvas } from "@/lib/queries";
+import { keys, useCanvas, useRenameCanvas } from "@/lib/queries";
 import type { Item, Kind } from "@/lib/types";
 import { asUrl, cn, modKey } from "@/lib/utils";
+import { HistoryDialog, ShareDialog, TrashDialog } from "./CanvasDialogs";
 import { CanvasActionsProvider, nodeTypes, type CanvasActions, type CardNodeType } from "./CardNode";
 import { DEFAULT_SIZE } from "./kinds";
 import { ReminderDialog } from "./ReminderDialog";
@@ -82,6 +86,7 @@ function Board() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const flow = useReactFlow<CardNodeType>();
+  const qc = useQueryClient();
   const canvas = useCanvas(canvasId);
   const sync = useItemSync(canvasId);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -95,6 +100,9 @@ function Board() {
   const [linkUrl, setLinkUrl] = useState("");
   const [remindFor, setRemindFor] = useState<Item | null>(null);
   const [lightbox, setLightbox] = useState<Item | null>(null);
+  const [historyFor, setHistoryFor] = useState<Item | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
   const [hits, setHits] = useState<Map<string, number>>(new Map());
   const [dragOver, setDragOver] = useState(false);
 
@@ -300,7 +308,8 @@ function Board() {
     }, 800);
   }, [canvasId]);
 
-  const focusItem = useCallback((id: string, n?: number) => {
+  /** Centre a card and select it; `mark` also gives it a numbered highlight (for chat citations). */
+  const focusItem = useCallback((id: string, n?: number, mark = true) => {
     const node = flow.getNode(id);
     if (!node) return;
     const w = node.measured?.width ?? node.width ?? 260;
@@ -308,7 +317,7 @@ function Board() {
     const chatShift = chatOpen && window.innerWidth >= 640 ? 200 / Math.max(flow.getZoom(), 0.6) : 0;
     flow.setCenter(node.position.x + w / 2 + chatShift, node.position.y + h / 2, { zoom: Math.max(flow.getZoom(), 0.9), duration: 600 });
     setNodes((nds) => nds.map((x) => ({ ...x, selected: x.id === id })));
-    setHits((prev) => (prev.has(id) ? prev : new Map([...prev, [id, n ?? prev.size + 1]])));
+    if (mark) setHits((prev) => (prev.has(id) ? prev : new Map([...prev, [id, n ?? prev.size + 1]])));
   }, [flow, chatOpen]);
 
   const onSources = useCallback((sources: Source[]) => {
@@ -320,16 +329,44 @@ function Board() {
     else navigate(`/c/${s.canvas_id}?item=${s.item_id}`);
   }, [canvasId, focusItem, navigate]);
 
+  /* ---------- delete with undo (deleted cards stay restorable for 30 days) ---------- */
+  const removeWithUndo = useCallback(async (ids: string[]) => {
+    const gone = await sync.remove(ids);
+    if (!gone.length) return;
+    void qc.invalidateQueries({ queryKey: keys.itemTrash(canvasId) });
+    toast(gone.length === 1 ? "Card deleted" : `${gone.length} cards deleted`, {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          const results = await Promise.allSettled(gone.map((id) => api.post<{ data: Item }>(`/items/${id}/restore`)));
+          sync.upsert(results.flatMap((r) => (r.status === "fulfilled" ? [r.value.data] : [])));
+          if (results.some((r) => r.status === "rejected")) toast.error("Couldn't bring back every card. Check Recently deleted.");
+        },
+      },
+    });
+  }, [sync, qc, canvasId]);
+
+  /* ---------- chat answers onto the canvas ---------- */
+  const onAnswerAction = useCallback(async (messageId: number, action: "save_note" | "checklist") => {
+    const pos = placeAt("note");
+    const item = (await api.post<{ data: Item }>(`/chat/messages/${messageId}/actions`,
+      { action, canvas_id: canvasId, x: pos.x, y: pos.y })).data;
+    sync.upsert([item]);
+    requestAnimationFrame(() => focusItem(item.id, undefined, false));
+    toast.success(action === "checklist" ? "Checklist added to the canvas" : "Answer saved as a note");
+  }, [placeAt, canvasId, sync, focusItem]);
+
   /* ---------- actions for cards ---------- */
   const actions: CanvasActions = useMemo(() => ({
     editingId,
     setEditing,
     update: (id, patch) => sync.update(id, patch),
-    remove: (ids) => { void sync.remove(ids); setEditing(null); },
+    remove: (ids) => { void removeWithUndo(ids); setEditing(null); },
     remind: (item) => setRemindFor(item),
     openImage: (item) => setLightbox(item),
+    history: (item) => setHistoryFor(item),
     singleSelection: selected.length === 1,
-  }), [editingId, sync, selected.length]);
+  }), [editingId, sync, selected.length, removeWithUndo]);
 
   if (canvas.error || sync.loadError) {
     return (
@@ -365,6 +402,15 @@ function Board() {
           {canvas.data ? <TitleEditor id={canvasId} title={canvas.data.title} /> : <div className="shimmer h-5 w-40 rounded" />}
           <div className="flex-1" />
           <SaveIndicator status={sync.status} />
+          <Tip label="Recently deleted cards">
+            <Button variant="ghost" size="icon-sm" onClick={() => setTrashOpen(true)} aria-label="Recently deleted cards" className="text-text-2">
+              <Icon icon={Delete03Icon} size={16} />
+            </Button>
+          </Tip>
+          <Button variant={canvas.data?.share_token ? "secondary" : "ghost"} size="sm" onClick={() => setShareOpen(true)}
+            disabled={!canvas.data} className="gap-1.5 text-text-2">
+            <Icon icon={Share08Icon} size={15} /> <span className="hidden sm:inline">{canvas.data?.share_token ? "Shared" : "Share"}</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setFindOpen(true)} aria-label="Find a card" className="text-text-2">
             <Icon icon={Search01Icon} size={15} /><Kbd className="hidden sm:inline-flex">{modKey}K</Kbd>
           </Button>
@@ -471,7 +517,13 @@ function Board() {
         </div>
       </div>
 
-      <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} canvasId={canvasId} onSources={onSources} onCite={onCite} />
+      <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} canvasId={canvasId} onSources={onSources} onCite={onCite}
+        onAction={onAnswerAction} />
+      {canvas.data && <ShareDialog canvas={canvas.data} open={shareOpen} onOpenChange={setShareOpen} />}
+      <TrashDialog canvasId={canvasId} open={trashOpen} onOpenChange={setTrashOpen} onRestored={(it) => sync.upsert([it])} />
+      <HistoryDialog item={historyFor} onOpenChange={(o) => !o && setHistoryFor(null)}
+        beforeRestore={async (id) => { await sync.flush(); return sync.current(id)?.version; }}
+        onRestored={(it) => sync.upsert([it])} />
       <QuickFind open={findOpen} onOpenChange={setFindOpen} />
       <ReminderDialog item={remindFor} open={!!remindFor} onOpenChange={(o) => !o && setRemindFor(null)} />
 

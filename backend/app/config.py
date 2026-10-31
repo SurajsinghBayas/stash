@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     mail_from: str = "Stash <no-reply@localhost>"
 
+    # save by email: mail to save+<token>@INBOUND_EMAIL_DOMAIN is posted to /api/v1/inbound/email by a forwarder
+    # (see deploy/inbound-email-worker.js) that sends INBOUND_SECRET in the X-Inbound-Secret header
+    inbound_email_domain: str | None = None
+    inbound_secret: str | None = None
+
     # AI (names match the reference .env)
     openai_api_key: str | None = None
     openai_base_url: str | None = None

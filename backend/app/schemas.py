@@ -77,6 +77,11 @@ class UserPatch(In):
         return value
 
 
+class DeleteAccountIn(In):
+    confirm: Literal["DELETE"]
+    password: str | None = Field(default=None, max_length=128)
+
+
 # ---------- canvases ----------
 
 class Viewport(BaseModel):
@@ -88,6 +93,7 @@ class Viewport(BaseModel):
 
 class CanvasIn(In):
     title: Annotated[Str, StringConstraints(min_length=1, max_length=120)] = "Untitled"
+    template: Annotated[str, StringConstraints(max_length=40)] | None = None
 
 
 class CanvasPatch(In):
@@ -101,6 +107,7 @@ class CanvasOut(Out):
     viewport: dict
     item_count: int = 0
     preview: list[dict] = []
+    share_token: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -226,6 +233,13 @@ class ChatIn(In):
 
 
 # ---------- reminders ----------
+
+class ChatActionIn(In):
+    action: Literal["save_note", "checklist"]
+    canvas_id: uuid.UUID
+    x: float = Field(default=0, ge=-1e7, le=1e7)
+    y: float = Field(default=0, ge=-1e7, le=1e7)
+
 
 class ReminderIn(In):
     remind_at: datetime

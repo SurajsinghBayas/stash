@@ -93,6 +93,16 @@ Certbot renews automatically.
 - X developer portal → User authentication settings → callback `https://YOUR_DOMAIN/api/v1/auth/oauth/x/callback`,
   website `https://YOUR_DOMAIN`.
 - Resend → Domains → add YOUR_DOMAIN and the DNS records it shows. Until verified it only delivers to your own address.
+  `.env`: `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASSWORD=<Resend API key>`,
+  `MAIL_FROM=Stash <onboarding@resend.dev>` (use `no-reply@YOUR_DOMAIN` once the domain is verified).
+- Check mail end to end (SMTP login, then a real reminder through the scheduler and worker):
+
+  ```bash
+  cd /srv/stash/backend && sudo -u stash .venv/bin/python -m app.mail_check you@example.com
+  ```
+
+- Save by email (optional): put `INBOUND_EMAIL_DOMAIN` and a random `INBOUND_SECRET` in `.env`, restart stash-api,
+  then follow the steps at the top of `deploy/inbound-email-worker.js` (Cloudflare Email Routing + a small Worker).
 
 ## Operating
 
