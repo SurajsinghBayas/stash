@@ -19,6 +19,7 @@ export interface User {
   digest_hour: number;
   memory_enabled: boolean;
   has_password: boolean;
+  is_admin?: boolean;
   created_at: string;
 }
 

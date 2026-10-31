@@ -19,6 +19,7 @@ const Privacy = lazy(() => import("./pages/Info").then((m) => ({ default: m.Priv
 const Terms = lazy(() => import("./pages/Info").then((m) => ({ default: m.Terms })));
 const SharedCanvas = lazy(() => import("./pages/SharedCanvas"));
 const ShareTarget = lazy(() => import("./pages/ShareTarget"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 export function FullPageLoader({ label = "Loading" }: { label?: string }) {
   return (
@@ -73,6 +74,7 @@ export function App() {
         <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
         <Route path="/share" element={<RequireAuth><ShareTarget /></RequireAuth>} />
         <Route path="/s/:token" element={<SharedCanvas />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -83,7 +85,7 @@ export function App() {
   );
 }
 
-function NotFound() {
+export function NotFound() {
   return (
     <div className="grid min-h-dvh place-items-center px-4 text-center">
       <div>

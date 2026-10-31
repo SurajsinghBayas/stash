@@ -11,6 +11,7 @@
   --text: #ededef; --text-2: #a1a1aa; --text-3: #68686f;
   --accent: #c8f031; --accent-hover: #d5f55c; --accent-fg: #09090b; --accent-soft: rgba(200, 240, 49, 0.11);
   --accent-text: #c8f031;
+  --chart: #c8f031; /* single-series chart marks */
   --danger: #f2555f; --danger-soft: rgba(242, 85, 95, 0.13);
   --success: #4ade80; --success-soft: rgba(74, 222, 128, 0.12);
   --warning: #f5b544; --warning-soft: rgba(245, 181, 68, 0.12);
@@ -28,6 +29,7 @@
   --border: rgba(10, 10, 12, 0.08); --border-strong: rgba(10, 10, 12, 0.15);
   --text: #0b0b0d; --text-2: #52525b; --text-3: #8a8a94;
   --accent: #bdeb21; --accent-hover: #add915; --accent-fg: #0b0b0d; --accent-soft: #f1fbd0; --accent-text: #4b6b00;
+  --chart: #4b6b00;
   --danger: #d92d3a; --danger-soft: #fce6e8; --success: #1e8a4f; --success-soft: #e2f3e9;
   --warning: #a86b0c; --warning-soft: #f8edd7;
   --canvas: #fafafa; --canvas-dot: #d4d4d8;

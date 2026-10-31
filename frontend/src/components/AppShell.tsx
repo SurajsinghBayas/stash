@@ -4,6 +4,7 @@ import {
   Moon02Icon,
   Search01Icon,
   Settings01Icon,
+  DashboardSquare01Icon,
   Sun03Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -63,6 +64,7 @@ export function AccountMenu() {
         <MenuItem icon={UserCircleIcon} onSelect={() => navigate("/profile")}>Profile</MenuItem>
         <MenuItem icon={Clock01Icon} onSelect={() => navigate("/reminders")}>Reminders</MenuItem>
         <MenuItem icon={Settings01Icon} onSelect={() => navigate("/settings")}>Settings</MenuItem>
+        {user.is_admin && <MenuItem icon={DashboardSquare01Icon} onSelect={() => navigate("/admin")}>Admin</MenuItem>}
         <MenuItem icon={mode === "dark" ? Sun03Icon : Moon02Icon}
           onSelect={() => setMode(mode === "dark" ? "light" : "dark")}>
           {mode === "dark" ? "Light mode" : "Dark mode"}

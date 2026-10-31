@@ -79,8 +79,15 @@ class Settings(BaseSettings):
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
 
+    # admin panel (/admin). The API creates or updates this account at start, and it is the only account that can
+    # read /api/v1/admin. Use an address no one else can sign up with; changing the password signs it out everywhere.
+    admin_email: str | None = None
+    admin_password: str | None = None
+
     @model_validator(mode="after")
     def _check(self) -> "Settings":
+        if self.admin_email and len(self.admin_password or "") < 12:
+            raise ValueError("ADMIN_PASSWORD must be at least 12 characters when ADMIN_EMAIL is set")
         if self.is_production:
             missing = [
                 name

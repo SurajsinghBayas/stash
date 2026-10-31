@@ -58,6 +58,7 @@ class UserOut(Out):
     digest_hour: int
     memory_enabled: bool = True
     has_password: bool = False
+    is_admin: bool = False
     created_at: datetime
 
 
