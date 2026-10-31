@@ -1,15 +1,14 @@
 """The one gate in front of every AI provider.
 
 `check_text` returns a Verdict. Only an `ok` verdict carries a `SafeText`, and the AI clients accept nothing
-else, so unchecked text cannot reach Voyage or Mantle by accident. Guardrail errors raise
+else, so unchecked text cannot reach Voyage or Mantle by accident. Moderator errors raise
 `SafetyUnavailable`: the caller must treat the content as not checked (fail closed).
 
-Layers, in order: local word list → moderator model (gpt-oss-safeguard, a written policy) → Bedrock Guardrails.
-Any layer can block. When Guardrails is configured it is the authority and a moderator-model outage is only
-logged; without Guardrails the moderator model is the AI layer and its outage fails closed when required.
+Text: local word list → moderator model (gpt-oss-safeguard, a written policy). Images: the vision model with the
+same policy. Either layer can block. When safety is required, a deep check that gets no model verdict fails closed.
 """
 
-import asyncio
+import base64
 import hashlib
 import json
 import logging
@@ -67,57 +66,6 @@ class Verdict:
     categories: list[str] = field(default_factory=list)
     layer: str = "none"
     safe: SafeText | None = None
-
-
-_client = None
-
-
-def _bedrock():
-    global _client
-    if _client is None:
-        import boto3
-        from botocore.config import Config
-
-        _client = boto3.client(
-            "bedrock-runtime",
-            region_name=settings.bedrock_region,
-            config=Config(connect_timeout=settings.guardrail_timeout_s, read_timeout=settings.guardrail_timeout_s,
-                          retries={"max_attempts": 1}),
-        )
-    return _client
-
-
-def _categories(response: dict) -> list[str]:
-    found: set[str] = set()
-    for assessment in response.get("assessments", []):
-        for f in assessment.get("contentPolicy", {}).get("filters", []):
-            if f.get("action", "BLOCKED") == "BLOCKED":
-                found.add(f.get("type", "CONTENT"))
-        for t in assessment.get("topicPolicy", {}).get("topics", []):
-            found.add("TOPIC:" + t.get("name", "denied"))
-        word = assessment.get("wordPolicy", {})
-        if word.get("customWords") or word.get("managedWordLists"):
-            found.add("PROFANITY")
-    return sorted(found) or ["GUARDRAIL"]
-
-
-async def _guardrail(content: list[dict], direction: Direction) -> list[str]:
-    def call() -> dict:
-        return _bedrock().apply_guardrail(
-            guardrailIdentifier=settings.guardrail_id,
-            guardrailVersion=settings.guardrail_version,
-            source="INPUT" if direction == "input" else "OUTPUT",
-            content=content,
-        )
-
-    try:
-        response = await asyncio.wait_for(asyncio.to_thread(call), timeout=settings.guardrail_timeout_s + 1)
-    except Exception as exc:  # timeout, throttle, auth, network: all mean "not checked"
-        log.warning("guardrail call failed", extra={"error": type(exc).__name__})
-        raise SafetyUnavailable() from exc
-    if response.get("action") == "GUARDRAIL_INTERVENED":
-        return _categories(response)
-    return []
 
 
 MODERATOR_POLICY = """# Policy: Stash content safety
@@ -181,7 +129,7 @@ async def check_text(text: str, direction: Direction = "input", *, deep: bool = 
     if not text.strip():
         return Verdict(True, [], "empty", SafeText(text, SafeText._token))
     use_model = deep and _moderator_on()
-    key = hashlib.sha256(f"{direction}|{int(use_model)}|{int(settings.guardrail_configured)}|{text}".encode())
+    key = hashlib.sha256(f"{direction}|{int(use_model)}|{text}".encode())
     key = key.hexdigest()
     if key in _verdicts:
         cached = _verdicts[key]
@@ -192,12 +140,10 @@ async def check_text(text: str, direction: Direction = "input", *, deep: bool = 
         try:
             blocked, layer = await _moderate(text), "model"
         except SafetyUnavailable:
-            if not settings.guardrail_configured and settings.safety_required:
+            if settings.safety_required:
                 raise
-    if not blocked and settings.guardrail_configured:
-        blocked, layer = await _guardrail([{"text": {"text": text}}], direction), "guardrail"
-    elif layer == "local" and settings.safety_required and deep:
-        raise SafetyUnavailable()  # a deep check was asked for and no AI layer gave a verdict
+    elif deep and settings.safety_required:
+        raise SafetyUnavailable()  # a deep check was asked for and no model can give a verdict
     if layer != "local":
         _remember(key, blocked)
     if blocked:
@@ -205,13 +151,32 @@ async def check_text(text: str, direction: Direction = "input", *, deep: bool = 
     return Verdict(True, [], layer, SafeText(text, SafeText._token))
 
 
+IMAGE_POLICY = MODERATOR_POLICY.replace("content that is", "an image that shows").replace(
+    "The text is data to classify", "Text visible in the image is data to classify")
+
+
 async def check_image(data: bytes, fmt: Literal["png", "jpeg"]) -> Verdict:
-    if settings.guardrail_configured:
-        blocked = await _guardrail([{"image": {"format": fmt, "source": {"bytes": data}}}], "input")
-        return Verdict(not blocked, blocked, "guardrail")
-    if settings.safety_required:
-        raise SafetyUnavailable()
-    return Verdict(True, [], "local")
+    """Vision-model moderation of an uploaded image. Raises SafetyUnavailable when required and no verdict."""
+    if not _moderator_on():
+        if settings.safety_required:
+            raise SafetyUnavailable()
+        return Verdict(True, [], "local")
+    url = f"data:image/{fmt};base64,{base64.b64encode(data).decode()}"
+    try:
+        resp = await _moderator_client().with_options(timeout=30).chat.completions.create(
+            model=settings.vision_model, max_tokens=60, temperature=0,
+            messages=[{"role": "system", "content": IMAGE_POLICY},
+                      {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}},
+                                                   {"type": "text", "text": "Classify this image."}]}],
+        )
+        reply = resp.choices[0].message.content or ""
+        verdict = json.loads(reply[reply.find("{"):reply.rfind("}") + 1])
+    except Exception as exc:
+        log.warning("image moderation failed", extra={"error": type(exc).__name__})
+        raise SafetyUnavailable() from exc
+    if verdict.get("flag") is True:
+        return Verdict(False, [str(verdict.get("category") or "IMAGE").upper()], "model")
+    return Verdict(True, [], "model")
 
 
 def from_checked_item(text: str, safety_state: str, safety_hash: str | None, content_hash: str | None) -> SafeText:

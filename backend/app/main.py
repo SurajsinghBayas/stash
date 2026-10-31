@@ -20,7 +20,7 @@ async def lifespan(_: FastAPI):
     setup_logging(settings.log_level)
     await detect_capabilities()
     log.info("api started", extra={"env": settings.app_env, "vector": capabilities.vector,
-                                   "chat": settings.chat_ai_configured, "guardrail": settings.guardrail_configured})
+                                   "chat": settings.chat_ai_configured, "moderator": settings.moderation_model_enabled})
     yield
     await engine.dispose()
 

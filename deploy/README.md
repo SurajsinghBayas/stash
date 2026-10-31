@@ -1,7 +1,7 @@
 # Deploying Stash (AWS ap-south-1)
 
 One EC2 instance runs nginx (frontend + `/api` proxy), the API and the worker. Postgres is RDS (`stash-db`), images
-go to S3, content safety uses Bedrock Guardrails. Everything is in **ap-south-1 (Mumbai)**.
+go to S3, content safety uses the moderator and vision models on Mantle. Everything is in **ap-south-1 (Mumbai)**.
 
 ```
 browser ──https──> nginx ──/──────> /srv/stash/frontend/dist (static)
@@ -16,27 +16,22 @@ browser ──https──> nginx ──/──────> /srv/stash/frontend/
    [{"AllowedOrigins": ["https://YOUR_DOMAIN"], "AllowedMethods": ["PUT", "GET"],
      "AllowedHeaders": ["*"], "MaxAgeSeconds": 3000}]
    ```
-2. **Bedrock guardrail**: Bedrock → Guardrails → Create. Content filters: Sexual, Violence, Hate, Insults,
-   Misconduct = High for prompts and responses; Prompt attacks = High. Create, then **Create version** → note the
-   guardrail ID and version `1`.
-3. **IAM role for EC2** `stash-ec2`: IAM → Roles → Create → AWS service / EC2 → attach an inline policy:
+2. **IAM role for EC2** `stash-ec2`: IAM → Roles → Create → AWS service / EC2 → attach an inline policy:
    ```json
    {"Version": "2012-10-17", "Statement": [
      {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
-      "Resource": "arn:aws:s3:::YOUR_BUCKET/*"},
-     {"Effect": "Allow", "Action": "bedrock:ApplyGuardrail",
-      "Resource": "arn:aws:bedrock:ap-south-1:YOUR_ACCOUNT_ID:guardrail/YOUR_GUARDRAIL_ID"}]}
+      "Resource": "arn:aws:s3:::YOUR_BUCKET/*"}]}
    ```
-4. **EC2 instance**: EC2 → Launch instance
+3. **EC2 instance**: EC2 → Launch instance
    - Name `stash-web`, AMI **Ubuntu Server 24.04 LTS (64-bit Arm)**, type **t4g.small** (2 GB)
    - Key pair: create `stash` (.pem), save it to `~/.ssh/stash.pem`, `chmod 400` it
    - Network: same VPC as `stash-db`; auto-assign public IP on. Security group `stash-web-sg`:
      SSH 22 from **My IP**, HTTP 80 and HTTPS 443 from anywhere
    - Storage 20 GB gp3. Advanced details → IAM instance profile: `stash-ec2`
-5. **Elastic IP**: EC2 → Elastic IPs → Allocate → Associate with `stash-web` (the IP then survives restarts).
-6. **Let the instance reach the database**: RDS security group `stash-db-sg` → inbound
+4. **Elastic IP**: EC2 → Elastic IPs → Allocate → Associate with `stash-web` (the IP then survives restarts).
+5. **Let the instance reach the database**: RDS security group `stash-db-sg` → inbound
    PostgreSQL 5432, source = security group `stash-web-sg`.
-7. **DNS**: at your domain registrar add an `A` record `YOUR_DOMAIN → <elastic IP>`.
+6. **DNS**: at your domain registrar add an `A` record `YOUR_DOMAIN → <elastic IP>`.
 
 ## 2. Set up the server (from your Mac, repo root)
 
@@ -70,12 +65,11 @@ Start from your local `backend/.env` and change:
 | `JWT_SECRET` | new value: `python3 -c 'import secrets;print(secrets.token_urlsafe(48))'` |
 | `SMTP_*`, `MAIL_FROM` | Resend values (uncommented), `MAIL_FROM=Stash <no-reply@YOUR_DOMAIN>` once the domain is verified in Resend |
 | `S3_BUCKET` | your bucket |
-| `GUARDRAIL_ID` / `GUARDRAIL_VERSION` | from step 1.2 |
 | `SAFETY_REQUIRED` | `true` |
 | `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | **delete the lines entirely** (empty values would override the instance role) |
 | `LOCAL_UPLOAD_DIR` | delete |
 
-The API refuses to start in production without `SMTP_HOST`, `S3_BUCKET` and `GUARDRAIL_ID`.
+The API refuses to start in production without `SMTP_HOST`, `S3_BUCKET` and the AI key (`OPENAI_API_KEY`, `OPENAI_BASE_URL`), which the safety moderator needs.
 
 ## 5. Deploy
 

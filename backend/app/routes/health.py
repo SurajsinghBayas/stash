@@ -30,7 +30,7 @@ async def ready():
             "vector_search": capabilities.vector,
             "chat": settings.chat_ai_configured,
             "embeddings": settings.embeddings_configured,
-            "guardrail": settings.guardrail_configured,
+            "moderator": settings.moderation_model_enabled and settings.chat_ai_configured,
             "mail": settings.mail_enabled,
         },
     }

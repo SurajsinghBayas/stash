@@ -1,7 +1,7 @@
 """Free, instant first layer: explicit-term list and adult-domain list.
 
 The term list is deliberately short and phrase-based so harmless text passes ("breast cancer screening",
-"kill the process on port 4000"). Hate speech and subtler abuse are left to Bedrock Guardrails. Extend
+"kill the process on port 4000"). Hate speech and subtler abuse are left to the moderator model. Extend
 `EXTRA_TERMS_FILE` at deploy time with a maintained list if needed.
 """
 

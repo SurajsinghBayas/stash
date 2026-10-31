@@ -7,7 +7,7 @@
 | Bedrock Mantle (OpenAI-compatible) | `zai.glm-5`, temperature 0.2 | Chat answers (stream, 450 output tokens max). Digest "key points" (400 max). | `services/ai/client.py` → `routes/chat.py`, `services/digests/service.py` |
 | Voyage embeddings | `voyage-4`, 1024 dims | One vector per card (`document`). One vector per chat question (`query`). "Related cards". | `worker.index_item`, `search.retrieve`, `search.related` |
 | Voyage rerank | `rerank-3-lite` | Re-orders chat candidates. Keeps a hit when score ≥ max(0.35, top − 0.3). | `search.retrieve` |
-| Bedrock Guardrails | not configured yet (`GUARDRAIL_ID`) | Abuse and adult checks on cards, questions, history and answers. | `services/safety/service.py` |
+| Image moderation | `qwen.qwen3-vl-235b-a22b-instruct` (same written policy as the text moderator) | Adult and abusive checks on uploaded images before they are shown or read. | `services/safety/service.py` |
 | Local safety list | word list + adult domains | First layer; the only layer in dev. Blocks adult links before fetch. | `services/safety/local.py` |
 | Postgres full text | `tsvector` | Keyword half of hybrid search; all of ⌘K quick find. | `search._keyword_rows` |
 | pgvector (Neon) | `vector(1024)`, cosine | Vector half of hybrid search. | `search._vector_rows` |
@@ -22,7 +22,7 @@ Keys you already hold but Stash does not use yet: Mem0 (`memo_api_key`), LlamaPa
 ```
 card saved → content_hash changes → job index_item(hash)
   → search_text(kind, content)          # link: title+description+url only; image: caption+filename
-  → safety check (local + guardrail)    → safety_state ok | flagged
+  → safety check (local + moderator)    → safety_state ok | flagged
   → embed whole text (≤20k chars, 1 vector)  → items.embedding, index_state ready
 ```
 

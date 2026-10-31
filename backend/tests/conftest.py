@@ -16,7 +16,6 @@ os.environ.update({
     "DATABASE_URL_DIRECT": TEST_DB,
     "JWT_SECRET": "test-secret-" + "x" * 40,
     "SAFETY_REQUIRED": "false",
-    "GUARDRAIL_ID": "",
     "OPENAI_API_KEY": "",
     "OPENAI_BASE_URL": "",
     "VOYAGER_API_KEY": "",

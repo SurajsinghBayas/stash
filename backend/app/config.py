@@ -59,13 +59,9 @@ class Settings(BaseSettings):
     answer_cache_hours: int = 24
     memory_enabled: bool = True
 
-    # content safety
+    # content safety: word list + moderator model (text) and vision model (images), all on Mantle
     aws_region: str = "ap-south-1"  # S3
-    bedrock_region: str = "ap-south-1"  # Guardrails
-    guardrail_id: str | None = None
-    guardrail_version: str = "1"
     safety_required: bool = True
-    guardrail_timeout_s: float = 2.0
 
     # uploads
     s3_bucket: str | None = None
@@ -86,7 +82,8 @@ class Settings(BaseSettings):
                 for name, value in {
                     "SMTP_HOST": self.smtp_host,
                     "S3_BUCKET": self.s3_bucket,
-                    "GUARDRAIL_ID": self.guardrail_id if self.safety_required else "n/a",
+                    "OPENAI_API_KEY": self.openai_api_key,  # the moderator needs it: safety is required
+                    "OPENAI_BASE_URL": self.openai_base_url,
                 }.items()
                 if not value
             ]
@@ -120,10 +117,6 @@ class Settings(BaseSettings):
     @property
     def embeddings_configured(self) -> bool:
         return self.ai_enabled and bool(self.voyager_api_key)
-
-    @property
-    def guardrail_configured(self) -> bool:
-        return bool(self.guardrail_id)
 
     @cached_property
     def async_database_url(self) -> tuple[str, dict]:
