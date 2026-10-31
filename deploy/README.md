@@ -101,3 +101,32 @@ journalctl -u stash-api -f          # API logs
 journalctl -u stash-worker -f       # worker logs
 sudo systemctl restart stash-api stash-worker
 ```
+
+## CI/CD (GitHub Actions)
+
+`.github/workflows/ci-cd.yml` runs on every push and pull request: ruff + backend tests (Postgres 17 service) and
+the frontend typecheck/build. On a push to `main`, once both pass, it SSHes into the server and runs
+`deploy/remote-deploy.sh <sha>`: fetch that commit, `uv sync`, `alembic upgrade head`, `npm ci && npm run build`,
+refresh systemd units if they changed, restart, and wait for `/health/ready`. A failed health check fails the run.
+
+One-time setup:
+
+1. **Deploy key** (on your Mac). It is used only by CI:
+   ```bash
+   ssh-keygen -t ed25519 -N "" -C stash-ci-deploy -f ~/.ssh/stash-ci-deploy
+   ```
+2. **Lock the key to the deploy script** (on the server). CI can then run nothing else, not even a shell:
+   ```bash
+   echo 'command="sudo /srv/stash/deploy/remote-deploy.sh \"$SSH_ORIGINAL_COMMAND\"",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty PASTE_PUBLIC_KEY_HERE' >> ~/.ssh/authorized_keys
+   ```
+   (`PASTE_PUBLIC_KEY_HERE` = the whole line of `~/.ssh/stash-ci-deploy.pub`.)
+3. **GitHub secrets** (on your Mac, repo root):
+   ```bash
+   gh secret set DEPLOY_SSH_KEY < ~/.ssh/stash-ci-deploy
+   gh secret set DEPLOY_HOST --body 13.235.184.92
+   ssh-keyscan -t ed25519 13.235.184.92 2>/dev/null | gh secret set DEPLOY_KNOWN_HOSTS
+   ```
+4. **Security group**: GitHub's runners use changing IPs, so SSH (22) must allow `0.0.0.0/0`. Password login is off
+   on EC2 Ubuntu and the CI key can only run the deploy script.
+
+Manual run: GitHub → Actions → CI/CD → Run workflow. Server-side by hand: `sudo /srv/stash/deploy/remote-deploy.sh $(git -C /srv/stash rev-parse origin/main)`.

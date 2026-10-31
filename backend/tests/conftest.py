@@ -51,7 +51,7 @@ def schema():
     import asyncpg
 
     async def reset():
-        conn = await asyncpg.connect("postgresql://postgres@/stash_test?host=/tmp")
+        conn = await asyncpg.connect(TEST_DB)
         await conn.execute("drop schema public cascade; create schema public;")
         await conn.close()
 

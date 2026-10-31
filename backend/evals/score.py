@@ -41,8 +41,8 @@ def _row(question: dict, got: list[str], ids: dict[str, str]) -> dict:
     expected = question["expect"]
     if question["kind"] == "no_match":
         ok = not got
-        return {"id": question["id"], "kind": "no_match", "hit": ok, "recall": 1.0 if ok else 0.0, "rr": 1.0 if ok else 0.0,
-                "got": got}
+        score = 1.0 if ok else 0.0
+        return {"id": question["id"], "kind": "no_match", "hit": ok, "recall": score, "rr": score, "got": got}
     ranks = {card: i for i, card in enumerate(got, start=1)}
     found = [key for key in expected if ids.get(key) in got]
     first = min((ranks[ids[key]] for key in found), default=0)
