@@ -556,7 +556,7 @@ SAFETY_REQUIRED=true     # fail closed; app refuses to boot without GUARDRAIL_ID
 AWS_BEARER_TOKEN_BEDROCK=  # local dev only (your AWS_BEDROCK_APIKEY); EC2 uses its IAM role
 
 # image uploads (S3, ap-south-1)
-S3_BUCKET=               # private, e.g. stash-uploads-prod
+S3_BUCKET=               # private, e.g. stash-uploads-<unique-suffix>
 UPLOAD_MAX_BYTES=10485760
 USER_STORAGE_QUOTA_MB=500
 # local dev: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY for a dev-only IAM user scoped to a dev bucket
@@ -576,8 +576,8 @@ Frontend: none needed in layout A (the API is the relative `/api`).
    - SES in `ap-south-1`: verify the domain (DKIM), create SMTP credentials, **request production access** (sandbox only sends to verified addresses).
    - Budget alerts at $10 and $25.
    - Bedrock Guardrail `stash-content` in `ap-south-1` with the §7a policies and the image content filter on; publish version 1.
-   - S3 bucket `stash-uploads-prod` in `ap-south-1`: block all public access, SSE-S3, CORS allowing `PUT` from `https://DOMAIN` only, lifecycle rules from §6.
-2. **EC2** per `01`/`02`: `t4g.small` Arm, Ubuntu 24.04, 20 GB gp3, `app-sg` (22 from My IP, 80, 443), Elastic IP, IMDSv2 only, UFW, 2 GB swap. One change from the notes: attach an **IAM instance profile** `stash-ec2` whose only permissions are `bedrock:ApplyGuardrail` on the guardrail ARN and `s3:PutObject`/`GetObject`/`DeleteObject` on `stash-uploads-prod/uploads/*`. Install `python3.12-venv`, Node 22 (frontend build), nginx, PM2, git.
+   - S3 bucket `stash-uploads-<unique-suffix>` in `ap-south-1`: block all public access, SSE-S3, CORS allowing `PUT` from `https://DOMAIN` only, lifecycle rules from §6.
+2. **EC2** per `01`/`02`: `t4g.small` Arm, Ubuntu 24.04, 20 GB gp3, `app-sg` (22 from My IP, 80, 443), Elastic IP, IMDSv2 only, UFW, 2 GB swap. One change from the notes: attach an **IAM instance profile** `stash-ec2` whose only permissions are `bedrock:ApplyGuardrail` on the guardrail ARN and `s3:PutObject`/`GetObject`/`DeleteObject` on `YOUR_BUCKET/uploads/*`. Install `python3.12-venv`, Node 22 (frontend build), nginx, PM2, git.
 3. **Code**: private GitHub repo, read-only deploy key, clone to `~/app`.
 4. **Backend**: `python3 -m venv .venv && .venv/bin/pip install -e .`; `backend/.env` (mode 600); `alembic upgrade head`.
 5. **PM2** (`deploy/ecosystem.config.js`):

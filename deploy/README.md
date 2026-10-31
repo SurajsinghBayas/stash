@@ -60,7 +60,7 @@ Start from your local `backend/.env` and change:
 |---|---|
 | `APP_ENV` | `production` |
 | `APP_URL` | `https://YOUR_DOMAIN` |
-| `DATABASE_URL` | `postgresql://stash_app:<pw>@stash-db.cv4i600y6bxd.ap-south-1.rds.amazonaws.com:5432/stash?sslmode=require` |
+| `DATABASE_URL` | `postgresql://stash_app:<pw>@YOUR_RDS_ENDPOINT:5432/stash?sslmode=require` |
 | `DATABASE_URL_DIRECT` | delete the line (or same as `DATABASE_URL`) |
 | `JWT_SECRET` | new value: `python3 -c 'import secrets;print(secrets.token_urlsafe(48))'` |
 | `SMTP_*`, `MAIL_FROM` | Resend values (uncommented), `MAIL_FROM=Stash <no-reply@YOUR_DOMAIN>` once the domain is verified in Resend |
@@ -133,8 +133,8 @@ One-time setup:
 3. **GitHub secrets** (on your Mac, repo root):
    ```bash
    gh secret set DEPLOY_SSH_KEY < ~/.ssh/stash-ci-deploy
-   gh secret set DEPLOY_HOST --body 13.235.184.92
-   ssh-keyscan -t ed25519 13.235.184.92 2>/dev/null | gh secret set DEPLOY_KNOWN_HOSTS
+   gh secret set DEPLOY_HOST --body YOUR_ELASTIC_IP
+   ssh-keyscan -t ed25519 YOUR_ELASTIC_IP 2>/dev/null | gh secret set DEPLOY_KNOWN_HOSTS
    ```
 4. **Security group**: GitHub's runners use changing IPs, so SSH (22) must allow `0.0.0.0/0`. Password login is off
    on EC2 Ubuntu and the CI key can only run the deploy script.
