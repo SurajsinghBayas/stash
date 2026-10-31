@@ -275,6 +275,12 @@ class Conversation:
         """Hand one SSE event to the LangGraph run, which stream() yields as it arrives."""
         get_stream_writer()(event)
 
+    async def _release(self) -> None:
+        """End the transaction before a model call. The call takes seconds; without this the turn would keep one of
+        the pool's few connections checked out the whole time, and a handful of simultaneous questions would stall
+        every other request. Loaded rows stay usable (expire_on_commit=False); pending trace rows are saved now."""
+        await self.s.commit()
+
     def _trace(self, task: str, timer: trace.Timer, usage: ai.Usage | None, outcome: str = "success",
                model: str = "") -> None:
         trace.record(self.s, user_id=self.ask.user_id, task=f"chat.{task}", prompt_version=PROMPT_VERSION,
@@ -303,7 +309,7 @@ class Conversation:
             return hit, None
         prompt = ([authored("Conversation so far:\n"), history, authored("\n\n")] if history else []) + [
             authored("Latest question: "), q]
-        usage = ai.Usage()
+        usage = ai.Usage()  # no _release here: this runs beside the embedding and memory lookups (graph_plan)
         try:
             plan = await ai.chat_json(authored(PLANNER_SYSTEM), join_safe(prompt, ""), Plan,
                                       model=settings.fast_model, max_tokens=300, usage=usage)
@@ -351,6 +357,7 @@ class Conversation:
         pool = passages[:RERANK_POOL]
         if not pool or not settings.embeddings_configured:
             return pool
+        await self._release()
         try:
             ranked = await ai.rerank(question, [p.sealed_text() for p in pool], top_k=min(12, len(pool)))
         except ai.AIUnavailable:
@@ -370,6 +377,7 @@ class Conversation:
             parts += [authored(f"\n[{n}] ({KIND_LABEL.get(p.hit.kind, 'Card')}, saved {saved}) "),
                       p.sealed_text(700)]
         usage = ai.Usage()
+        await self._release()
         try:
             return await ai.chat_json(authored(JUDGE_SYSTEM), join_safe(parts, ""), Judgement,
                                       model=settings.fast_model, max_tokens=200, usage=usage), usage
@@ -433,6 +441,7 @@ class Conversation:
     async def _write(self, system: SafeText, prompt: SafeText) -> AsyncIterator[Event]:
         usage, timer = ai.Usage(), trace.Timer()
         pending, shown = "", ""
+        await self._release()
         try:
             async for piece in ai.chat_stream(system, [("user", prompt)], max_tokens=600, usage=usage,
                                               model=settings.chat_model, fallback=settings.writer_fallback_model):
@@ -461,6 +470,7 @@ class Conversation:
         if not answer.ok:
             return None
         usage, timer = ai.Usage(), trace.Timer()
+        await self._release()
         try:
             check = await ai.chat_json(authored(VERIFIER_SYSTEM),
                                        join_safe([authored("Cards:"), *prompt_cards, authored("\nAnswer:\n"),
@@ -495,6 +505,7 @@ class Conversation:
         # Earlier turns are context only when this question points at them.
         self._emit(step("planner", "Understanding your question"))
         timer = trace.Timer()
+        await self._release()
         plan_task = asyncio.create_task(self._plan(self.history if self.follow_up else None))
         question_vector = None
         if settings.embeddings_configured:
@@ -504,6 +515,7 @@ class Conversation:
                 pass
         if ask.memory_on:
             self.preferences, self.facts = await memory.recall(self.s, ask.user_id, question_vector)
+        await self._release()  # the lookups are done; let the connection go while the planner finishes
         plan, plan_usage = await plan_task
         self.browse = search.browse_kinds(ask.question.value)
         if self.browse:

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # database
     database_url: str
     database_url_direct: str | None = None
-    db_pool_size: int = 5
+    db_pool_size: int = 20  # per process (API and worker each); RDS allows far more. Chat no longer pins one per answer
 
     # auth
     jwt_secret: str = Field(min_length=32)

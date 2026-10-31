@@ -80,6 +80,35 @@ async def test_answer_cites_only_retrieved_cards(client, canvas, ai_on):
     assert notes[0]["ai"] == {"summary": "The launch is on Friday.", "tags": ["launch"]}
 
 
+async def test_no_connection_is_held_while_the_model_works(client, canvas, ai_on, monkeypatch):
+    """A model call takes seconds. If the turn kept its pool connection meanwhile, five simultaneous questions would
+    use up the whole pool and stall every other request."""
+    await client.post(f"/api/v1/canvases/{canvas['id']}/items",
+                      json={"kind": "text", "x": 0, "y": 0, "content": {"text": "Launch date: Friday"}})
+    await drain()
+    held: list[tuple[str, int]] = []
+    stream, chat_json = ai.chat_stream, ai.chat_json
+
+    async def watched_stream(*args, **kwargs):
+        held.append(("answer", engine.pool.checkedout()))
+        async for piece in stream(*args, **kwargs):
+            yield piece
+
+    async def watched_json(system, prompt, schema, **kwargs):
+        held.append((schema.__name__, engine.pool.checkedout()))
+        return await chat_json(system, prompt, schema, **kwargs)
+
+    monkeypatch.setattr(ai, "chat_stream", watched_stream)
+    monkeypatch.setattr(ai, "chat_json", watched_json)
+    r = await client.post("/api/v1/chat", json={"question": "Which day did we pick for the launch?",
+                                                 "canvas_id": canvas["id"]})
+    assert r.status_code == 200 and events(r.text)[-1][0] == "done"
+    assert {name for name, _ in held} >= {"Plan", "answer"}
+    # The planner starts beside two quick lookups that may still be using the connection; every other call waits
+    # with nothing checked out.
+    assert all(n == 0 for name, n in held if name != "Plan"), held
+
+
 async def test_asking_for_code_finds_a_python_card(client, canvas, ai_on):
     item = (await client.post(f"/api/v1/canvases/{canvas['id']}/items", json={
         "kind": "code", "x": 0, "y": 0,
