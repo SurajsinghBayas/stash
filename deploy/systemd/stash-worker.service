@@ -1,0 +1,21 @@
+[Unit]
+Description=Stash worker (jobs, AI ingest, digests, reminders)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=stash
+Group=stash
+WorkingDirectory=/srv/stash/backend
+ExecStart=/srv/stash/backend/.venv/bin/python -m app.worker
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

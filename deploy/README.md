@@ -1,0 +1,113 @@
+# Deploying Stash (AWS ap-south-1)
+
+One EC2 instance runs nginx (frontend + `/api` proxy), the API and the worker. Postgres is RDS (`stash-db`), images
+go to S3, content safety uses Bedrock Guardrails. Everything is in **ap-south-1 (Mumbai)**.
+
+```
+browser ──https──> nginx ──/──────> /srv/stash/frontend/dist (static)
+                         └─/api/──> uvicorn 127.0.0.1:4000 (stash-api) ──> RDS stash-db (private)
+                                    python -m app.worker  (stash-worker) ──> S3, Bedrock, Mantle, Voyage, Resend
+```
+
+## 1. AWS resources (console, region Mumbai)
+
+1. **S3 bucket** `stash-uploads-<something-unique>`: Block all public access ON. Then Permissions → CORS:
+   ```json
+   [{"AllowedOrigins": ["https://YOUR_DOMAIN"], "AllowedMethods": ["PUT", "GET"],
+     "AllowedHeaders": ["*"], "MaxAgeSeconds": 3000}]
+   ```
+2. **Bedrock guardrail**: Bedrock → Guardrails → Create. Content filters: Sexual, Violence, Hate, Insults,
+   Misconduct = High for prompts and responses; Prompt attacks = High. Create, then **Create version** → note the
+   guardrail ID and version `1`.
+3. **IAM role for EC2** `stash-ec2`: IAM → Roles → Create → AWS service / EC2 → attach an inline policy:
+   ```json
+   {"Version": "2012-10-17", "Statement": [
+     {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::YOUR_BUCKET/*"},
+     {"Effect": "Allow", "Action": "bedrock:ApplyGuardrail",
+      "Resource": "arn:aws:bedrock:ap-south-1:YOUR_ACCOUNT_ID:guardrail/YOUR_GUARDRAIL_ID"}]}
+   ```
+4. **EC2 instance**: EC2 → Launch instance
+   - Name `stash-web`, AMI **Ubuntu Server 24.04 LTS (64-bit Arm)**, type **t4g.small** (2 GB)
+   - Key pair: create `stash` (.pem), save it to `~/.ssh/stash.pem`, `chmod 400` it
+   - Network: same VPC as `stash-db`; auto-assign public IP on. Security group `stash-web-sg`:
+     SSH 22 from **My IP**, HTTP 80 and HTTPS 443 from anywhere
+   - Storage 20 GB gp3. Advanced details → IAM instance profile: `stash-ec2`
+5. **Elastic IP**: EC2 → Elastic IPs → Allocate → Associate with `stash-web` (the IP then survives restarts).
+6. **Let the instance reach the database**: RDS security group `stash-db-sg` → inbound
+   PostgreSQL 5432, source = security group `stash-web-sg`.
+7. **DNS**: at your domain registrar add an `A` record `YOUR_DOMAIN → <elastic IP>`.
+
+## 2. Set up the server (from your Mac, repo root)
+
+```bash
+export STASH_HOST=ubuntu@<elastic-ip> STASH_KEY=~/.ssh/stash.pem STASH_DOMAIN=<your domain>
+./deploy/deploy.sh setup
+```
+
+## 3. Database user (once)
+
+```bash
+ssh -i $STASH_KEY $STASH_HOST
+psql "host=stash-db.cv4i600y6bxd.ap-south-1.rds.amazonaws.com user=stash_admin dbname=stash sslmode=require"
+```
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE USER stash_app WITH PASSWORD '<letters-and-digits-only>';
+GRANT ALL ON DATABASE stash TO stash_app;
+ALTER SCHEMA public OWNER TO stash_app;
+```
+
+## 4. Production `.env` (on the server, never in git)
+
+```bash
+sudo -u stash nano /srv/stash/backend/.env && sudo chmod 600 /srv/stash/backend/.env
+```
+Start from your local `backend/.env` and change:
+
+| Key | Value |
+|---|---|
+| `APP_ENV` | `production` |
+| `APP_URL` | `https://YOUR_DOMAIN` |
+| `DATABASE_URL` | `postgresql://stash_app:<pw>@stash-db.cv4i600y6bxd.ap-south-1.rds.amazonaws.com:5432/stash?sslmode=require` |
+| `DATABASE_URL_DIRECT` | delete the line (or same as `DATABASE_URL`) |
+| `JWT_SECRET` | new value: `python3 -c 'import secrets;print(secrets.token_urlsafe(48))'` |
+| `SMTP_*`, `MAIL_FROM` | Resend values (uncommented), `MAIL_FROM=Stash <no-reply@YOUR_DOMAIN>` once the domain is verified in Resend |
+| `S3_BUCKET` | your bucket |
+| `GUARDRAIL_ID` / `GUARDRAIL_VERSION` | from step 1.2 |
+| `SAFETY_REQUIRED` | `true` |
+| `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | **delete the lines entirely** (empty values would override the instance role) |
+| `LOCAL_UPLOAD_DIR` | delete |
+
+The API refuses to start in production without `SMTP_HOST`, `S3_BUCKET` and `GUARDRAIL_ID`.
+
+## 5. Deploy
+
+```bash
+./deploy/deploy.sh
+```
+Builds the frontend locally, ships code, runs `uv sync` and `alembic upgrade head`, restarts both services and
+prints `/health/ready`. Run it again for every release.
+
+## 6. HTTPS
+
+```bash
+ssh -i $STASH_KEY $STASH_HOST 'sudo certbot --nginx -d YOUR_DOMAIN --redirect -m you@example.com --agree-tos -n'
+```
+Certbot renews automatically.
+
+## 7. OAuth and mail
+
+- Google Cloud Console → Credentials → your OAuth client → add redirect URI
+  `https://YOUR_DOMAIN/api/v1/auth/oauth/google/callback` and JavaScript origin `https://YOUR_DOMAIN`.
+- X developer portal → User authentication settings → callback `https://YOUR_DOMAIN/api/v1/auth/oauth/x/callback`,
+  website `https://YOUR_DOMAIN`.
+- Resend → Domains → add YOUR_DOMAIN and the DNS records it shows. Until verified it only delivers to your own address.
+
+## Operating
+
+```bash
+journalctl -u stash-api -f          # API logs
+journalctl -u stash-worker -f       # worker logs
+sudo systemctl restart stash-api stash-worker
+```

@@ -1,0 +1,1520 @@
+<!doctype html>
+<html lang="en" data-option="sterling" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stash Style Guide</title>
+<meta name="description" content="Three visual directions for Stash: tokens, mascot, components, landing page, canvas and chat.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Base tokens (shared by every option)
+   ============================================================ */
+:root {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px; --space-24: 96px;
+
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 999px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 140ms; --dur-fast: 160ms; --dur-base: 200ms; --dur-drawer: 320ms; --dur-camera: 600ms;
+
+  --z-card: 1; --z-toolbar: 20; --z-drawer: 30; --z-popover: 40; --z-toast: 50; --z-modal: 60;
+
+  /* sticky-note palette, light */
+  --note-yellow: #FFF3BF; --note-blue: #DCEBFF; --note-green: #DCF3E2; --note-pink: #FBE0E6;
+}
+
+/* ============================================================
+   Option 1 — Sterling (blue + silver)
+   ============================================================ */
+[data-option="sterling"][data-mode="light"] {
+  --bg: #F2F4F7; --surface: #FFFFFF; --surface-2: #EBEEF3; --surface-3: #E1E6ED;
+  --border: rgba(15, 23, 42, 0.09); --border-strong: rgba(15, 23, 42, 0.16);
+  --text: #0E1525; --text-2: #4A5568; --text-3: #8391A5;
+  --accent: #2F5BEA; --accent-hover: #2550D8; --accent-fg: #FFFFFF; --accent-soft: #E7EDFE; --accent-text: #2F5BEA;
+  --danger: #D9354A; --danger-soft: #FCE8EB; --success: #1F8A5B; --success-soft: #E3F4EC; --warning: #B7791F; --warning-soft: #FBF0DD;
+  --canvas: #F6F7F9; --canvas-dot: #CDD4DE;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 16px 40px -8px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --m-body: #DCE2EA; --m-lid: #2F5BEA; --m-ink: #0E1525; --m-eye: #FFFFFF;
+}
+[data-option="sterling"][data-mode="dark"] {
+  --bg: #0A0E16; --surface: #111723; --surface-2: #182030; --surface-3: #212B3D;
+  --border: rgba(200, 212, 230, 0.10); --border-strong: rgba(200, 212, 230, 0.18);
+  --text: #E7EBF2; --text-2: #A2AEC0; --text-3: #6A778B;
+  --accent: #5B82FF; --accent-hover: #7194FF; --accent-fg: #FFFFFF; --accent-soft: rgba(91, 130, 255, 0.14); --accent-text: #8AA6FF;
+  --danger: #F2647A; --danger-soft: rgba(242, 100, 122, 0.14); --success: #4CC38A; --success-soft: rgba(76, 195, 138, 0.14); --warning: #E3A84B; --warning-soft: rgba(227, 168, 75, 0.14);
+  --canvas: #0D121C; --canvas-dot: #253045;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(200, 212, 230, 0.08);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(200, 212, 230, 0.09);
+  --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 212, 230, 0.10);
+  --m-body: #D5DCE6; --m-lid: #5B82FF; --m-ink: #0A0E16; --m-eye: #FFFFFF;
+}
+
+/* ============================================================
+   Option 2 — Notebook (paper + vermilion)
+   ============================================================ */
+[data-option="notebook"][data-mode="light"] {
+  --bg: #F5F1E8; --surface: #FFFDF8; --surface-2: #EEE9DD; --surface-3: #E5DED0;
+  --border: rgba(48, 38, 24, 0.11); --border-strong: rgba(48, 38, 24, 0.20);
+  --text: #1E1A15; --text-2: #5C5448; --text-3: #968B7C;
+  --accent: #E0522B; --accent-hover: #CC4520; --accent-fg: #FFFFFF; --accent-soft: #FBE4DA; --accent-text: #C2431F;
+  --danger: #C8323F; --danger-soft: #F8E1E2; --success: #2F7D4F; --success-soft: #E1F0E5; --warning: #A46A12; --warning-soft: #F6EBD3;
+  --canvas: #FAF7F0; --canvas-dot: #D8CFBE;
+  --shadow-sm: 0 1px 2px rgba(48, 38, 24, 0.07), 0 0 0 1px rgba(48, 38, 24, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(48, 38, 24, 0.12), 0 0 0 1px rgba(48, 38, 24, 0.06);
+  --shadow-lg: 0 16px 40px -8px rgba(48, 38, 24, 0.20), 0 0 0 1px rgba(48, 38, 24, 0.07);
+  --m-body: #FFF0C7; --m-lid: #E0522B; --m-ink: #1E1A15; --m-eye: #FFFFFF;
+}
+[data-option="notebook"][data-mode="dark"] {
+  --bg: #161411; --surface: #1F1C18; --surface-2: #29251F; --surface-3: #332E27;
+  --border: rgba(240, 228, 210, 0.10); --border-strong: rgba(240, 228, 210, 0.18);
+  --text: #EFE8DC; --text-2: #B4AA9A; --text-3: #7E7466;
+  --accent: #FF7A4D; --accent-hover: #FF8E66; --accent-fg: #1A120D; --accent-soft: rgba(255, 122, 77, 0.14); --accent-text: #FF9A75;
+  --danger: #F06A72; --danger-soft: rgba(240, 106, 114, 0.14); --success: #5FC184; --success-soft: rgba(95, 193, 132, 0.14); --warning: #E2AE55; --warning-soft: rgba(226, 174, 85, 0.14);
+  --canvas: #1A1815; --canvas-dot: #39342C;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(240, 228, 210, 0.08);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(240, 228, 210, 0.09);
+  --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(240, 228, 210, 0.10);
+  --m-body: #FFEBB8; --m-lid: #FF7A4D; --m-ink: #161411; --m-eye: #FFFFFF;
+}
+
+/* ============================================================
+   Option 3 — Graphite (graphite + signal lime)
+   ============================================================ */
+[data-option="graphite"][data-mode="light"] {
+  --bg: #F6F6F7; --surface: #FFFFFF; --surface-2: #EFEFF1; --surface-3: #E5E5E8;
+  --border: rgba(10, 10, 12, 0.08); --border-strong: rgba(10, 10, 12, 0.15);
+  --text: #0B0B0D; --text-2: #52525B; --text-3: #8A8A94;
+  --accent: #BDEB21; --accent-hover: #ADD915; --accent-fg: #0B0B0D; --accent-soft: #F1FBD0; --accent-text: #4B6B00;
+  --danger: #D92D3A; --danger-soft: #FCE6E8; --success: #1E8A4F; --success-soft: #E2F3E9; --warning: #A86B0C; --warning-soft: #F8EDD7;
+  --canvas: #FAFAFA; --canvas-dot: #D4D4D8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --m-body: #E4E4E7; --m-lid: #BDEB21; --m-ink: #0B0B0D; --m-eye: #FFFFFF;
+}
+[data-option="graphite"][data-mode="dark"] {
+  --bg: #09090B; --surface: #121214; --surface-2: #1A1A1D; --surface-3: #232327;
+  --border: rgba(255, 255, 255, 0.075); --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #EDEDEF; --text-2: #A1A1AA; --text-3: #68686F;
+  --accent: #C8F031; --accent-hover: #D5F55C; --accent-fg: #09090B; --accent-soft: rgba(200, 240, 49, 0.11); --accent-text: #C8F031;
+  --danger: #F2555F; --danger-soft: rgba(242, 85, 95, 0.13); --success: #4ADE80; --success-soft: rgba(74, 222, 128, 0.12); --warning: #F5B544; --warning-soft: rgba(245, 181, 68, 0.12);
+  --canvas: #0C0C0E; --canvas-dot: #26262B;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --m-body: #E4E4E7; --m-lid: #C8F031; --m-ink: #09090B; --m-eye: #FFFFFF;
+}
+
+[data-mode="dark"] {
+  --note-yellow: #3A3320; --note-blue: #1D2A3E; --note-green: #1D3326; --note-pink: #3B2229;
+  color-scheme: dark;
+}
+
+/* ============================================================
+   Page
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+svg { display: block; }
+.mono { font-family: var(--font-mono); }
+.tnum { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 720px) { .wrap { padding: 0 32px; } }
+
+/* header */
+.guide-header {
+  position: sticky; top: 0; z-index: var(--z-toolbar);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.guide-header .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; margin-right: auto; }
+.brand small { font-weight: 400; color: var(--text-3); font-size: 13px; }
+
+.seg { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+.seg button {
+  height: 30px; padding: 0 12px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.seg .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+@media (max-width: 600px) {
+  #optionSeg { order: 3; width: 100%; }
+  #optionSeg button { flex: 1; justify-content: center; padding: 0 6px; }
+}
+
+.icon-btn {
+  width: 36px; height: 36px; border-radius: var(--radius-md); display: inline-grid; place-items: center; color: var(--text-2);
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-press) var(--ease-out);
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn:active { transform: scale(0.95); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* sections */
+.section { padding: 72px 0 8px; }
+.section-head { display: grid; gap: 8px; margin-bottom: 32px; max-width: 720px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.h-display { font-size: clamp(36px, 6vw, 60px); line-height: 1.04; font-weight: 600; letter-spacing: -0.03em; text-wrap: balance; }
+.h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
+.h2 { font-size: 24px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
+.h3 { font-size: 17px; line-height: 1.4; font-weight: 600; letter-spacing: -0.01em; }
+.lead { font-size: 17px; color: var(--text-2); text-wrap: pretty; max-width: 62ch; }
+.muted { color: var(--text-2); }
+.subtle { color: var(--text-3); font-size: 13px; }
+p { text-wrap: pretty; }
+
+.panel { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.panel-pad { padding: 24px; }
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.label { font-size: 12px; font-weight: 500; color: var(--text-3); }
+
+/* ============================================================
+   Option cards
+   ============================================================ */
+.option-card {
+  text-align: left; background: var(--surface); color: var(--text); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm); padding: 20px; display: grid; gap: 16px; align-content: start;
+  transition: transform var(--dur-press) var(--ease-out), box-shadow var(--dur-base) ease;
+}
+.option-card:active { transform: scale(0.985); }
+.option-card[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent), var(--shadow-md); }
+.option-card .opt-top { display: flex; align-items: center; gap: 14px; }
+.option-card .opt-top .mascot { width: 56px; height: 56px; flex-shrink: 0; }
+.option-card .opt-name { font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+.option-card .opt-sub { font-size: 13px; color: var(--text-2); }
+.strip { display: flex; height: 36px; border-radius: var(--radius-md); overflow: hidden; box-shadow: inset 0 0 0 1px var(--border); }
+.strip span { flex: 1; }
+.option-card ul { padding-left: 18px; font-size: 13.5px; color: var(--text-2); display: grid; gap: 4px; }
+.option-card .pick { font-size: 12px; font-weight: 500; color: var(--accent-text); }
+
+/* ============================================================
+   Mascot
+   ============================================================ */
+.mascot { width: 64px; height: 64px; display: inline-block; flex-shrink: 0; }
+.mascot svg { width: 100%; height: 100%; overflow: visible; }
+.mascot .m-lid { transform-box: view-box; transform-origin: 6px 23px; transform: rotate(-5deg); transition: transform 260ms var(--ease-out); }
+.mascot .m-pupils { transition: transform 110ms var(--ease-out); }
+.mascot .m-eyeball { transform-box: fill-box; transform-origin: center; transition: transform 200ms var(--ease-out); }
+.mascot .m-happy, .mascot .m-flat, .mascot .m-closed { opacity: 0; }
+.mascot .m-open { transform-box: view-box; transform-origin: 32px 38px; }
+
+.mascot[data-state="idle"] .m-open { animation: m-blink 6.5s infinite; }
+.mascot[data-state="searching"] .m-lid { transform: rotate(-14deg); }
+.mascot[data-state="searching"] .m-pupils { animation: m-scan 1.1s var(--ease-in-out) infinite alternate; }
+.mascot[data-state="found"] .m-lid { transform: rotate(-10deg); }
+.mascot[data-state="found"] .m-open { opacity: 0; }
+.mascot[data-state="found"] .m-happy { opacity: 1; }
+.mascot[data-state="checking"] .m-lid { transform: rotate(-2deg); }
+.mascot[data-state="checking"] .m-eyeball { transform: scaleY(0.55); }
+.mascot[data-state="checking"] .m-pupils { transform: translate(0, -1px); }
+.mascot[data-state="blocked"] .m-lid { transform: rotate(0deg); }
+.mascot[data-state="blocked"] .m-open { opacity: 0; }
+.mascot[data-state="blocked"] .m-flat { opacity: 1; }
+.mascot[data-state="sleeping"] .m-lid { transform: rotate(0deg); }
+.mascot[data-state="sleeping"] .m-open { opacity: 0; }
+.mascot[data-state="sleeping"] .m-closed { opacity: 1; }
+.mascot.is-offscreen .m-open, .mascot.is-offscreen .m-pupils { animation-play-state: paused; }
+
+@keyframes m-blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
+@keyframes m-scan { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+
+.mascot-stage {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: center;
+}
+@media (min-width: 860px) { .mascot-stage { grid-template-columns: 320px minmax(0, 1fr); } }
+.mascot-hero {
+  aspect-ratio: 1; border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-sm);
+  display: grid; place-items: center; position: relative; max-width: 320px; width: 100%;
+}
+.mascot-hero .mascot { width: 168px; height: 168px; }
+.mascot-hero .hint { position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--text-3); }
+.state-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; }
+.state {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 16px;
+  display: grid; justify-items: start; gap: 10px;
+}
+.state .mascot { width: 52px; height: 52px; }
+.state b { font-size: 14px; font-weight: 600; }
+.state p { font-size: 12.5px; color: var(--text-2); line-height: 1.45; }
+.sizes { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.sizes figure { display: grid; justify-items: center; gap: 6px; }
+.sizes figcaption { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+
+/* ============================================================
+   Tokens
+   ============================================================ */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 12px; }
+.swatch { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+.swatch .chip { height: 56px; box-shadow: inset 0 -1px 0 var(--border); }
+.swatch .meta { padding: 8px 10px; display: grid; gap: 1px; }
+.swatch .meta b { font-size: 12.5px; font-weight: 500; }
+.swatch .meta span { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.type-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.type-row:last-child { border-bottom: 0; }
+.type-row .spec { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-3); line-height: 1.5; }
+@media (max-width: 560px) { .type-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+
+.scale-row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.scale-row .sp { display: grid; justify-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+.scale-row .sp i { display: block; background: var(--accent); border-radius: 2px; width: 14px; }
+.radius-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.radius-row div { width: 64px; height: 64px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border-strong); display: grid; place-items: end center; padding-bottom: 4px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+.shadow-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 16px; }
+.shadow-row div { height: 80px; background: var(--surface); border-radius: var(--radius-lg); display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+
+table.spec-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.spec-table th, .spec-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec-table th { font-weight: 500; color: var(--text-3); font-size: 12px; }
+.spec-table td code { font-family: var(--font-mono); font-size: 12px; color: var(--text); background: var(--surface-2); padding: 2px 6px; border-radius: 5px; white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+
+/* motion demos */
+.motion-demo { display: grid; gap: 14px; }
+.track { position: relative; height: 44px; border-radius: var(--radius-md); background: var(--surface-2); overflow: hidden; }
+.track .puck { position: absolute; top: 8px; left: 8px; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); transition-property: transform; transition-duration: 300ms; }
+.track[data-ease="in"] .puck { transition-timing-function: ease-in; background: var(--text-3); }
+.track[data-ease="out"] .puck { transition-timing-function: var(--ease-out); }
+.track.go .puck { transform: translateX(calc(var(--track-w, 300px) - 44px)); }
+
+/* ============================================================
+   Icons
+   ============================================================ */
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.icon-cell { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 16px 8px 10px; display: grid; justify-items: center; gap: 8px; color: var(--text); }
+.icon-cell svg { width: 22px; height: 22px; }
+.icon-cell span { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+.i { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* ============================================================
+   Components
+   ============================================================ */
+.btn {
+  height: 38px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+  transition: background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-press) var(--ease-out);
+}
+.btn:active { transform: scale(0.97); }
+.btn .i { width: 16px; height: 16px; }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
+.btn-lg { height: 46px; padding: 0 22px; font-size: 15px; border-radius: 12px; }
+.btn-primary { background: var(--accent); color: var(--accent-fg); box-shadow: inset 0 -1px 0 rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.btn-secondary:hover { background: var(--surface-2); }
+.btn-ghost { color: var(--text-2); }
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn[disabled] { opacity: .5; pointer-events: none; }
+.btn-block { width: 100%; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; font-weight: 500; }
+.input {
+  height: 40px; width: 100%; border-radius: var(--radius-md); border: 0; padding: 0 12px; font-size: 14px;
+  background: var(--surface); box-shadow: inset 0 0 0 1px var(--border-strong);
+  transition: box-shadow var(--dur-fast) ease;
+}
+.input::placeholder { color: var(--text-3); }
+.input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
+.input.is-error { box-shadow: inset 0 0 0 1px var(--danger), 0 0 0 3px var(--danger-soft); }
+.field .err { font-size: 12.5px; color: var(--danger); display: flex; gap: 6px; align-items: center; }
+.field .row { display: flex; justify-content: space-between; align-items: baseline; }
+.link { color: var(--accent-text); font-size: 13px; font-weight: 500; text-decoration: none; }
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: var(--radius-full); font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.badge .i { width: 12px; height: 12px; }
+.badge-neutral { background: var(--surface-2); color: var(--text-2); }
+.badge-accent { background: var(--accent-soft); color: var(--accent-text); }
+.badge-warn { background: var(--warning-soft); color: var(--warning); }
+.badge-danger { background: var(--danger-soft); color: var(--danger); }
+.badge-success { background: var(--success-soft); color: var(--success); }
+
+kbd { font-family: var(--font-mono); font-size: 11px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; display: inline-grid; place-items: center; background: var(--surface-2); color: var(--text-2); box-shadow: inset 0 -1px 0 var(--border-strong), inset 0 0 0 1px var(--border); }
+
+.toast { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-lg); max-width: 380px; }
+.toast .t-title { font-size: 14px; font-weight: 500; }
+.toast .t-body { font-size: 13px; color: var(--text-2); }
+.toast .t-icon { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; }
+
+.auth {
+  width: 100%; max-width: 400px; margin: 0 auto; padding: 32px 28px; display: grid; gap: 18px;
+  background: var(--surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-md);
+}
+.auth .head { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.auth .head .mascot { width: 52px; height: 52px; }
+.oauth { display: grid; gap: 10px; }
+.divider { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-3); }
+.divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: var(--border); }
+
+.dialog { max-width: 420px; padding: 22px; display: grid; gap: 14px; border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
+
+.menu { width: 220px; padding: 6px; border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-lg); display: grid; gap: 1px; }
+.menu button { height: 34px; padding: 0 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text); text-align: left; }
+.menu button:hover, .menu button.is-active { background: var(--surface-2); }
+.menu button .i { width: 16px; height: 16px; color: var(--text-2); }
+.menu button kbd { margin-left: auto; }
+.menu hr { border: 0; height: 1px; background: var(--border); margin: 4px 0; }
+.menu .danger { color: var(--danger); }
+.menu .danger .i { color: var(--danger); }
+
+.tooltip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border-radius: 7px; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 500; }
+.tooltip kbd { background: color-mix(in srgb, var(--bg) 18%, transparent); color: var(--bg); box-shadow: none; }
+
+/* skeleton */
+.skel { border-radius: 6px; background: var(--surface-2); position: relative; overflow: hidden; }
+.skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 60%, transparent), transparent); animation: shimmer 1.4s infinite; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* ============================================================
+   Canvas cards (shared by canvas mock + component gallery)
+   ============================================================ */
+.card {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+  position: relative;
+  transition: opacity var(--dur-base) ease, box-shadow var(--dur-base) ease;
+}
+.card .c-body { padding: 12px 14px 14px; display: grid; gap: 6px; }
+.card .c-site { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-3); }
+.card .favicon { width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: 9.5px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.card .c-title { font-size: 14px; font-weight: 600; line-height: 1.35; letter-spacing: -0.005em; }
+.card .c-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .og { height: 112px; display: grid; place-items: center; position: relative; overflow: hidden; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.card .og b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.card.note { box-shadow: var(--shadow-sm); border-radius: 10px; }
+.card.note .c-body { padding: 14px 16px 16px; gap: 8px; }
+.card.note .note-title { font-weight: 600; font-size: 14px; }
+.card.note ul { list-style: none; padding: 0; display: grid; gap: 5px; font-size: 13px; }
+.card.note li { display: flex; gap: 8px; align-items: center; }
+.cbox { width: 15px; height: 15px; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--text-3); display: grid; place-items: center; flex-shrink: 0; }
+.cbox.on { background: var(--text); box-shadow: none; color: var(--bg); }
+.cbox.on svg { width: 11px; height: 11px; }
+li.done span { color: var(--text-3); text-decoration: line-through; }
+.card.code { background: var(--surface); }
+.card.code .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--text-3); }
+.card.code pre { margin: 0; padding: 12px 14px; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; color: var(--text); overflow: hidden; white-space: pre; }
+.tok-k { color: var(--accent-text); }
+.tok-s { color: var(--success); }
+.tok-c { color: var(--text-3); }
+.tok-f { color: var(--warning); }
+.card.image .img { height: 128px; position: relative; overflow: hidden; background: var(--surface-2); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.card.image .cap { padding: 9px 12px; font-size: 12.5px; color: var(--text-2); display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.card.image.checking .img { display: grid; place-items: center; gap: 6px; align-content: center; }
+.card.image.checking .img .mascot { width: 40px; height: 40px; }
+.card.image.checking .img span { font-size: 12px; color: var(--text-3); }
+.card .corner-badge { position: absolute; top: 8px; right: 8px; }
+.text-label { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
+
+/* a fake screenshot drawn in CSS, so the page has no external images */
+.shot { position: absolute; inset: 10px 10px 0; border-radius: 8px 8px 0 0; background: var(--surface); box-shadow: var(--shadow-sm); padding: 10px; display: grid; gap: 7px; align-content: start; }
+.shot i { display: block; height: 7px; border-radius: 4px; background: var(--surface-3); }
+.shot .row { display: grid; grid-template-columns: 1fr 52px; gap: 8px; align-items: center; }
+.shot .pill { height: 18px; border-radius: 6px; background: var(--accent); }
+
+/* highlight from chat */
+.card.is-hit { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px var(--accent-soft), var(--shadow-md); }
+.card.is-hit::after {
+  content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 2px var(--accent); opacity: 0; animation: hit-pulse 900ms var(--ease-out) 2;
+}
+@keyframes hit-pulse { from { box-shadow: 0 0 0 2px var(--accent); opacity: 1; } to { box-shadow: 0 0 0 14px var(--accent); opacity: 0; } }
+.world.is-dimmed .card:not(.is-hit), .world.is-dimmed .text-label { opacity: 0.32; }
+.hit-num { position: absolute; top: -10px; left: -10px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-size: 11.5px; font-weight: 600; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--canvas); z-index: 2; }
+
+/* ============================================================
+   Canvas mock
+   ============================================================ */
+.frame { border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden; background: var(--surface); }
+.frame-bar { height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); }
+.frame-bar .url { flex: 1; max-width: 360px; margin: 0 auto; height: 24px; border-radius: 7px; background: var(--surface-2); font-size: 12px; color: var(--text-3); display: flex; align-items: center; justify-content: center; gap: 6px; overflow: hidden; white-space: nowrap; }
+.frame-bar .url .i { width: 12px; height: 12px; }
+
+.stage-fit { position: relative; overflow: hidden; }
+.stage {
+  position: absolute; top: 0; left: 0; width: 1040px; height: 640px; transform-origin: 0 0;
+  background-color: var(--canvas);
+  background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  overflow: hidden;
+}
+.world { position: absolute; inset: 0; transform-origin: 0 0; transition: transform var(--dur-camera) var(--ease-in-out); }
+.world > * { position: absolute; }
+
+.cv-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; gap: 10px; z-index: var(--z-toolbar); pointer-events: none; }
+.cv-top > * { pointer-events: auto; }
+.stage.drawer-open .cv-top { right: 374px; }
+.stage.drawer-open .cv-status { display: none; }
+.cv-crumb { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 8px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); font-size: 13px; }
+.cv-crumb .mascot { width: 26px; height: 26px; }
+.cv-crumb .sep { color: var(--text-3); }
+.cv-crumb b { font-weight: 600; }
+.toolbar { margin: 0 auto; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); }
+.toolbar .tb { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: var(--text-2); position: relative; transition: background-color var(--dur-fast) ease, transform var(--dur-press) var(--ease-out); }
+.toolbar .tb:hover { background: var(--surface-2); color: var(--text); }
+.toolbar .tb:active { transform: scale(0.94); }
+.toolbar .tb[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-text); }
+.toolbar .tb svg { width: 18px; height: 18px; }
+.toolbar .tb small { position: absolute; right: 3px; bottom: 1px; font-size: 8.5px; color: var(--text-3); font-family: var(--font-mono); }
+.toolbar .vr { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.cv-status { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); font-size: 12.5px; color: var(--text-2); }
+.cv-status .ok { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+.cv-zoom { position: absolute; left: 14px; bottom: 14px; display: flex; align-items: center; border-radius: 11px; background: var(--surface); box-shadow: var(--shadow-md); z-index: var(--z-toolbar); padding: 3px; }
+.cv-zoom button { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: var(--text-2); }
+.cv-zoom button:hover { background: var(--surface-2); }
+.cv-zoom svg { width: 16px; height: 16px; }
+.cv-zoom span { font-size: 12px; width: 46px; text-align: center; color: var(--text-2); }
+
+.fab {
+  position: absolute; right: 16px; bottom: 16px; z-index: var(--z-toolbar);
+  height: 48px; padding: 0 16px 0 8px; border-radius: 16px; display: flex; align-items: center; gap: 8px;
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); font-size: 14px; font-weight: 500;
+  transition: transform var(--dur-press) var(--ease-out), opacity var(--dur-base) ease;
+}
+.fab:active { transform: scale(0.96); }
+.fab .mascot { width: 34px; height: 34px; }
+.fab kbd { margin-left: 4px; }
+.stage.drawer-open .fab { opacity: 0; pointer-events: none; }
+
+/* chat drawer (inside the canvas mock) */
+.drawer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 360px; z-index: var(--z-drawer);
+  transform: translateX(104%); transition: transform var(--dur-drawer) var(--ease-drawer);
+}
+.stage.drawer-open .drawer { transform: translateX(0); }
+.drawer .chat { height: 100%; border-radius: 0; box-shadow: -1px 0 0 var(--border), -24px 0 48px -24px rgba(0,0,0,.25); }
+
+/* ============================================================
+   Chat panel
+   ============================================================ */
+.chat { display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); overflow: hidden; min-height: 0; }
+.chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; border-bottom: 1px solid var(--border); }
+.chat-head .mascot { width: 32px; height: 32px; }
+.chat-head .who { display: grid; line-height: 1.25; margin-right: auto; }
+.chat-head .who b { font-size: 14px; font-weight: 600; }
+.chat-head .who span { font-size: 12px; color: var(--text-3); }
+.chat-scope { padding: 10px 14px 0; }
+.chat-scope .seg { width: 100%; }
+.chat-scope .seg button { flex: 1; justify-content: center; }
+.chat-body { flex: 1; overflow: hidden auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.msg-user { align-self: flex-end; max-width: 85%; padding: 9px 13px; border-radius: 14px 14px 4px 14px; background: var(--surface-2); font-size: 14px; }
+.msg-ai { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
+.msg-ai .mascot { width: 26px; height: 26px; margin-top: 1px; }
+.msg-ai .txt { font-size: 14px; line-height: 1.55; }
+.msg-ai .txt .status { color: var(--text-2); }
+.cite-inline { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 5px; background: var(--accent-soft); color: var(--accent-text); font-size: 11px; font-weight: 600; vertical-align: 1px; margin: 0 1px; }
+.cites { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cite {
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 4px; border-radius: 9px;
+  background: var(--surface); box-shadow: var(--shadow-sm); font-size: 12.5px; color: var(--text); max-width: 100%;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-press) var(--ease-out);
+}
+.cite:hover { background: var(--surface-2); }
+.cite:active { transform: scale(0.97); }
+.cite .n { width: 22px; height: 22px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-text); display: grid; place-items: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.cite .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-foot { padding: 12px; border-top: 1px solid var(--border); }
+.composer { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 12px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.composer:focus-within { box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
+.composer textarea { flex: 1; border: 0; background: transparent; resize: none; font-size: 14px; line-height: 20px; padding: 6px 0; min-height: 32px; max-height: 120px; outline: none; }
+.composer textarea::placeholder { color: var(--text-3); }
+.send { width: 32px; height: 32px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; flex-shrink: 0; transition: transform var(--dur-press) var(--ease-out); }
+.send:active { transform: scale(0.94); }
+.send svg { width: 16px; height: 16px; }
+.chat-hint { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11.5px; color: var(--text-3); }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; font-size: 13px; }
+.notice.neutral { background: var(--surface-2); color: var(--text-2); }
+.notice.blocked { background: var(--danger-soft); color: var(--text); }
+.notice .mascot { width: 28px; height: 28px; }
+.chat-states { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.chat-states .chat { min-height: 300px; }
+.chat-states .chat-body { padding: 14px; }
+.caption-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+
+/* ============================================================
+   Landing mock
+   ============================================================ */
+.landing { background: var(--bg); }
+.l-nav { display: flex; align-items: center; gap: 24px; padding: 18px 28px; }
+.l-logo { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.02em; margin-right: auto; }
+.l-logo .mascot { width: 30px; height: 30px; }
+.l-links { display: flex; gap: 22px; font-size: 14px; color: var(--text-2); }
+.l-links a { color: inherit; text-decoration: none; }
+.l-links a:hover { color: var(--text); }
+@media (max-width: 760px) { .l-links { display: none; } .l-nav { padding: 14px 16px; } }
+
+.l-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 56px 28px 40px; align-items: center; }
+@media (min-width: 940px) { .l-hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); padding: 72px 56px 56px; } }
+@media (max-width: 760px) { .l-hero { padding: 32px 16px; } }
+.l-hero .copy { display: grid; gap: 20px; justify-items: start; }
+.l-hero .pill { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 4px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-sm); font-size: 13px; color: var(--text-2); }
+.l-hero .pill .mascot { width: 22px; height: 22px; }
+.l-hero .small-print { font-size: 13px; color: var(--text-3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.l-hero .small-print span { display: inline-flex; align-items: center; gap: 6px; }
+
+.l-visual { position: relative; border-radius: var(--radius-xl); background-color: var(--canvas); background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1.2px); background-size: 20px 20px; box-shadow: var(--shadow-lg); min-height: 380px; overflow: hidden; }
+.l-visual > * { position: absolute; }
+.l-visual .watcher { position: absolute; right: 22px; bottom: 22px; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-lg); font-size: 13.5px; max-width: calc(100% - 44px); }
+.l-visual .watcher .mascot { width: 40px; height: 40px; }
+
+.l-proof { padding: 8px 28px 40px; display: flex; gap: 10px 28px; flex-wrap: wrap; justify-content: center; color: var(--text-3); font-size: 13px; }
+.l-proof span { display: inline-flex; align-items: center; gap: 7px; }
+.l-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; padding: 24px 28px 56px; }
+@media (max-width: 760px) { .l-features { padding: 16px; } .l-proof { padding: 8px 16px 24px; } }
+.l-feature { background: var(--surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); padding: 22px; display: grid; gap: 10px; align-content: start; }
+.l-feature .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-text); display: grid; place-items: center; }
+.l-feature .ic svg { width: 19px; height: 19px; }
+.l-feature p { font-size: 14px; color: var(--text-2); }
+.l-feature .mini { margin-top: 6px; border-radius: 12px; background: var(--canvas); box-shadow: inset 0 0 0 1px var(--border); padding: 12px; display: grid; gap: 8px; }
+.paste-demo { display: flex; align-items: center; gap: 8px; font-size: 12px; font-family: var(--font-mono); color: var(--text-2); }
+.l-cta { margin: 0 28px 28px; padding: 40px 28px; border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-sm); display: grid; justify-items: center; text-align: center; gap: 16px; }
+@media (max-width: 760px) { .l-cta { margin: 0 16px 16px; } }
+.l-cta .mascot { width: 64px; height: 64px; }
+.l-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 28px 28px; font-size: 13px; color: var(--text-3); border-top: 1px solid var(--border); }
+
+/* ============================================================
+   Dashboard mock
+   ============================================================ */
+.dash { padding: 22px; display: grid; gap: 18px; background: var(--bg); }
+.dash-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dash-top .h2 { margin-right: auto; }
+.dash-search { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 10px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-3); font-size: 13px; min-width: 220px; }
+.dash-search .i { width: 16px; height: 16px; }
+.dash-search kbd { margin-left: auto; }
+.canvas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 14px; }
+.ctile { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; text-align: left; transition: box-shadow var(--dur-base) ease, transform var(--dur-press) var(--ease-out); }
+.ctile:hover { box-shadow: var(--shadow-md); }
+.ctile:active { transform: scale(0.985); }
+.ctile .thumb { height: 116px; background-color: var(--canvas); background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1.2px); background-size: 14px 14px; position: relative; border-bottom: 1px solid var(--border); }
+.ctile .thumb i { position: absolute; border-radius: 4px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.ctile .meta { padding: 10px 12px 12px; display: grid; gap: 2px; }
+.ctile .meta b { font-size: 14px; font-weight: 600; }
+.ctile .meta span { font-size: 12px; color: var(--text-3); }
+.ctile.new { display: grid; place-items: center; min-height: 172px; box-shadow: inset 0 0 0 1.5px var(--border-strong); background: transparent; color: var(--text-2); font-size: 14px; font-weight: 500; }
+.ctile.new div { display: grid; justify-items: center; gap: 8px; }
+.empty { display: grid; justify-items: center; text-align: center; gap: 12px; padding: 40px 20px; border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-sm); }
+.empty .mascot { width: 72px; height: 72px; }
+
+/* rules */
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.rules ul { list-style: none; padding: 0; display: grid; gap: 10px; font-size: 14px; }
+.rules li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; }
+.rules li svg { width: 18px; height: 18px; margin-top: 2px; }
+.rules .do svg { color: var(--success); }
+.rules .dont svg { color: var(--danger); }
+
+.page-foot { padding: 64px 0 48px; color: var(--text-3); font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     Icon sprite: 24px grid, 1.5 stroke, round caps (Hugeicons-style).
+     Production: @hugeicons/react with the same names.
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-cursor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5l13 6.2-5.6 1.9-2 5.9z"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 12.5V6.75a1.5 1.5 0 013 0V11"/><path d="M11.5 10.5V5a1.5 1.5 0 013 0v5.5"/><path d="M14.5 10.5V7a1.5 1.5 0 013 0v6.5c0 4-2.6 7-6.5 7-2.8 0-4.4-1.4-5.6-3.6L4.2 14a1.5 1.5 0 012.6-1.5l1.7 2"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14V7a3 3 0 00-3-3H7a3 3 0 00-3 3v10a3 3 0 003 3h7z"/><path d="M14 20v-3.5a2.5 2.5 0 012.5-2.5H20"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M13.5 5l-3 14"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M3.5 17.5l5-5 4 4 3-3 5 5"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.7 9.7 0 0112 6c5 0 8.5 4 9.5 6a12.6 12.6 0 01-2.7 3.4"/><path d="M6.6 7.6A12.9 12.9 0 002.5 12c1 2 4.5 6 9.5 6a9.3 9.3 0 004.1-.9"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.6-3.2 8-7 9.5-3.8-1.5-7-4.9-7-9.5V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7.5l8 5.5 8-5.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="3"/><path d="M8.5 10V7.5a3.5 3.5 0 017 0V10"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v2a3 3 0 003 3h10a3 3 0 003-3v-2"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v3a3 3 0 01-3 3H7a3 3 0 01-3-3V9a3 3 0 013-3h3"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V7a3 3 0 00-3-3H7a3 3 0 00-3 3v6a3 3 0 003 3h1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 11a2 2 0 002 2h6a2 2 0 002-2l1-11"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6a2 2 0 012-2h3M15 4h3a2 2 0 012 2v3M20 15v3a2 2 0 01-2 2h-3M9 20H6a2 2 0 01-2-2v-3"/></symbol>
+    <symbol id="i-paste" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="16" rx="3"/><path d="M9 5V4a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5"/><path d="M12 16h.01"/></symbol>
+    <symbol id="i-google" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></symbol>
+  </defs>
+</svg>
+
+<header class="guide-header">
+  <div class="wrap">
+    <div class="brand"><span class="mascot" data-mascot data-state="idle" style="width:30px;height:30px"></span>Stash <small>Style guide</small></div>
+    <div class="seg" role="group" aria-label="Visual option" id="optionSeg">
+      <button data-opt="sterling" aria-pressed="true"><span class="dot" style="background:#2F5BEA"></span>1 · Sterling</button>
+      <button data-opt="notebook" aria-pressed="false"><span class="dot" style="background:#E0522B"></span>2 · Notebook</button>
+      <button data-opt="graphite" aria-pressed="false"><span class="dot" style="background:#C8F031"></span>3 · Graphite</button>
+    </div>
+    <button class="icon-btn" id="modeBtn" aria-label="Toggle dark mode"><svg><use href="#i-moon"/></svg></button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===================== Intro + options ===================== -->
+  <section class="section" style="padding-top:56px">
+    <div class="section-head">
+      <span class="eyebrow">Stash · Visual direction · v0.1</span>
+      <h1 class="h-display">Three ways Stash could look.</h1>
+      <p class="lead">Every option shares the same type, spacing, motion and components. Only colour and the mascot's paint change. Pick one in the header; the whole page, including the landing page, canvas and chat below, repaints. Each option has a light and a dark mode.</p>
+    </div>
+    <div class="grid grid-3" id="optionCards">
+      <button class="option-card" data-option="sterling" data-mode="light" data-opt="sterling" aria-pressed="true">
+        <div class="opt-top"><span class="mascot" data-mascot data-state="idle"></span><div><div class="opt-name">1 · Sterling</div><div class="opt-sub">Blue and silver</div></div></div>
+        <div class="strip"><span style="background:var(--bg)"></span><span style="background:var(--surface-2)"></span><span style="background:var(--m-body)"></span><span style="background:var(--text)"></span><span style="background:var(--accent)"></span></div>
+        <ul><li>Cool silver surfaces, one cobalt accent.</li><li>Reads as calm, precise and trustworthy.</li><li>Safest for a broad audience and for a product people pay for.</li></ul>
+        <span class="pick">Option 1</span>
+      </button>
+      <button class="option-card" data-option="notebook" data-mode="light" data-opt="notebook" aria-pressed="false">
+        <div class="opt-top"><span class="mascot" data-mascot data-state="found"></span><div><div class="opt-name">2 · Notebook</div><div class="opt-sub">Warm paper and vermilion</div></div></div>
+        <div class="strip"><span style="background:var(--bg)"></span><span style="background:var(--surface-2)"></span><span style="background:var(--m-body)"></span><span style="background:var(--text)"></span><span style="background:var(--accent)"></span></div>
+        <ul><li>Off-white paper, ink text, a single vermilion mark.</li><li>Closest to the Excalidraw feeling of a desk you think on.</li><li>Makes the mascot feel most at home.</li></ul>
+        <span class="pick">Option 2</span>
+      </button>
+      <button class="option-card" data-option="graphite" data-mode="dark" data-opt="graphite" aria-pressed="false">
+        <div class="opt-top"><span class="mascot" data-mascot data-state="searching"></span><div><div class="opt-name">3 · Graphite</div><div class="opt-sub">Graphite and signal lime</div></div></div>
+        <div class="strip"><span style="background:var(--bg)"></span><span style="background:var(--surface-2)"></span><span style="background:var(--m-body)"></span><span style="background:var(--text)"></span><span style="background:var(--accent)"></span></div>
+        <ul><li>Dark-first, near-black surfaces, lime used sparingly.</li><li>Feels fast and technical, like a developer tool.</li><li>Best if the first users are engineers and researchers.</li></ul>
+        <span class="pick">Chosen</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== Mascot ===================== -->
+  <section class="section" id="mascot">
+    <div class="section-head">
+      <span class="eyebrow">01 · Mascot</span>
+      <h2 class="h1">Meet Stash.</h2>
+      <p class="lead">A storage box with its lid lifted just enough to peek out. Stash keeps an eye on everything you save, so its eyes do the talking: they follow you, scan while searching, smile when something is found, and flatten when it won't help. It replaces the sparkle icon that every AI feature uses.</p>
+    </div>
+    <div class="mascot-stage">
+      <div class="mascot-hero">
+        <span class="mascot" data-mascot data-state="idle" data-follow></span>
+        <span class="hint">Move your pointer. Stash is watching.</span>
+      </div>
+      <div class="grid" style="gap:16px">
+        <div class="state-grid">
+          <div class="state"><span class="mascot" data-mascot data-state="idle"></span><b>Idle</b><p>Default. Blinks every few seconds. Chat button, header.</p></div>
+          <div class="state"><span class="mascot" data-mascot data-state="searching"></span><b>Searching</b><p>Lid up, eyes scan. While chat retrieves cards.</p></div>
+          <div class="state"><span class="mascot" data-mascot data-state="found"></span><b>Found</b><p>Smiling eyes. Answer with citations arrived.</p></div>
+          <div class="state"><span class="mascot" data-mascot data-state="checking"></span><b>Checking</b><p>Squinting. Image or card waiting on the safety check.</p></div>
+          <div class="state"><span class="mascot" data-mascot data-state="blocked"></span><b>Won't help</b><p>Lid shut, flat eyes. Blocked question or content.</p></div>
+          <div class="state"><span class="mascot" data-mascot data-state="sleeping"></span><b>Resting</b><p>Eyes closed. Empty states and nothing found.</p></div>
+        </div>
+        <div class="panel panel-pad">
+          <div class="label" style="margin-bottom:12px">Sizes · built on a 64-unit grid, 2.5-unit outline</div>
+          <div class="sizes">
+            <figure><span class="mascot" data-mascot data-state="idle" style="width:16px;height:16px"></span><figcaption>16 favicon</figcaption></figure>
+            <figure><span class="mascot" data-mascot data-state="idle" style="width:24px;height:24px"></span><figcaption>24 inline</figcaption></figure>
+            <figure><span class="mascot" data-mascot data-state="idle" style="width:32px;height:32px"></span><figcaption>32 chat</figcaption></figure>
+            <figure><span class="mascot" data-mascot data-state="idle" style="width:48px;height:48px"></span><figcaption>48 button</figcaption></figure>
+            <figure><span class="mascot" data-mascot data-state="idle" style="width:72px;height:72px"></span><figcaption>72 empty state</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:16px">
+      <div class="h3" style="margin-bottom:10px">Mascot rules</div>
+      <div class="rules">
+        <ul class="do">
+          <li><svg><use href="#i-check"/></svg><span>Use Stash wherever the AI acts: chat, search status, safety checks.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Its state matches what the system is doing. It never pretends to work.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Eye-following only on the landing page and the empty canvas, where it is a welcome, not a distraction.</span></li>
+        </ul>
+        <ul class="dont">
+          <li><svg><use href="#i-close"/></svg><span>No speech bubbles, jokes or personality copy. Stash shows, the product speaks plainly.</span></li>
+          <li><svg><use href="#i-close"/></svg><span>No bouncing, confetti or looping idle dances. Blinks only.</span></li>
+          <li><svg><use href="#i-close"/></svg><span>Never recolour beyond the option's three mascot tokens.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Color ===================== -->
+  <section class="section" id="color">
+    <div class="section-head">
+      <span class="eyebrow">02 · Colour</span>
+      <h2 class="h1">One accent per view.</h2>
+      <p class="lead">Neutrals carry the interface. The accent is reserved for the primary action, focus, selection and chat highlights. No gradients, no glow. Values update with the option and mode you pick.</p>
+    </div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <!-- ===================== Type ===================== -->
+  <section class="section" id="type">
+    <div class="section-head">
+      <span class="eyebrow">03 · Typography</span>
+      <h2 class="h1">Geist for words, Geist Mono for data.</h2>
+      <p class="lead">Two families, five sizes in the product. Headings balance, body text is capped near 65 characters, numbers use tabular figures. Only display sizes tighten their tracking.</p>
+    </div>
+    <div class="panel panel-pad">
+      <div class="type-row"><div class="spec">Display<br>60 / 1.04 · 600<br>−0.03em</div><div class="h-display">Ask, and it lights up.</div></div>
+      <div class="type-row"><div class="spec">Title<br>40 / 1.1 · 600<br>−0.02em</div><div class="h1">Payments research</div></div>
+      <div class="type-row"><div class="spec">Heading<br>24 / 1.25 · 600</div><div class="h2">Your canvases</div></div>
+      <div class="type-row"><div class="spec">Subheading<br>17 / 1.4 · 600</div><div class="h3">Razorpay · Webhooks guide</div></div>
+      <div class="type-row"><div class="spec">Body<br>15 / 1.6 · 400</div><p style="max-width:65ch">Drop links, notes, code and images anywhere on the canvas. Stash keeps track of where everything is, so you can ask for it in plain words later.</p></div>
+      <div class="type-row"><div class="spec">Small<br>13 / 1.5 · 400</div><p class="subtle" style="font-size:13px">Saved 2 minutes ago · 24 cards</p></div>
+      <div class="type-row"><div class="spec">Mono<br>13 / 1.6 · 400<br>tabular</div><p class="mono tnum" style="font-size:13px">verify_signature.py · 1,284 cards · 412 MB of 500 MB</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== Space, radius, shadow, motion ===================== -->
+  <section class="section" id="layout">
+    <div class="section-head">
+      <span class="eyebrow">04 · Space, shape, depth, motion</span>
+      <h2 class="h1">A 4-pixel grid and soft, layered shadows.</h2>
+      <p class="lead">Depth comes from translucent shadows plus a one-pixel ring, not from hard borders. Corners grow with the size of the surface.</p>
+    </div>
+    <div class="grid grid-2">
+      <div class="panel panel-pad grid" style="gap:14px">
+        <div class="label">Spacing</div>
+        <div class="scale-row">
+          <div class="sp"><i style="height:4px"></i>4</div><div class="sp"><i style="height:8px"></i>8</div><div class="sp"><i style="height:12px"></i>12</div><div class="sp"><i style="height:16px"></i>16</div><div class="sp"><i style="height:24px"></i>24</div><div class="sp"><i style="height:32px"></i>32</div><div class="sp"><i style="height:48px"></i>48</div><div class="sp"><i style="height:64px"></i>64</div><div class="sp"><i style="height:96px"></i>96</div>
+        </div>
+        <div class="label" style="margin-top:8px">Radius</div>
+        <div class="radius-row">
+          <div style="border-radius:6px">6</div><div style="border-radius:10px">10</div><div style="border-radius:14px">14</div><div style="border-radius:20px">20</div><div style="border-radius:999px">full</div>
+        </div>
+      </div>
+      <div class="panel panel-pad grid" style="gap:14px">
+        <div class="label">Elevation</div>
+        <div class="shadow-row">
+          <div style="box-shadow:var(--shadow-sm)">sm · rest</div>
+          <div style="box-shadow:var(--shadow-md)">md · cards, bars</div>
+          <div style="box-shadow:var(--shadow-lg)">lg · popovers</div>
+        </div>
+        <div class="label" style="margin-top:8px">Layers (fixed z-index scale)</div>
+        <div class="btn-row" style="gap:6px"><span class="badge badge-neutral">card 1</span><span class="badge badge-neutral">toolbar 20</span><span class="badge badge-neutral">drawer 30</span><span class="badge badge-neutral">popover 40</span><span class="badge badge-neutral">toast 50</span><span class="badge badge-neutral">modal 60</span></div>
+      </div>
+    </div>
+
+    <div class="panel panel-pad" style="margin-top:16px">
+      <div class="h3" style="margin-bottom:12px">Motion</div>
+      <div class="table-scroll">
+        <table class="spec-table">
+          <thead><tr><th>Moment</th><th>Duration</th><th>Easing</th><th>Properties</th></tr></thead>
+          <tbody>
+            <tr><td>Button press</td><td class="tnum">140 ms</td><td><code>--ease-out</code></td><td><code>scale(0.97)</code></td></tr>
+            <tr><td>Hover, colour</td><td class="tnum">160 ms</td><td><code>ease</code></td><td>background, colour</td></tr>
+            <tr><td>Tooltip, menu, popover</td><td class="tnum">160–200 ms</td><td><code>--ease-out</code></td><td>opacity, <code>scale(0.96)</code> from the trigger</td></tr>
+            <tr><td>Chat drawer</td><td class="tnum">320 ms</td><td><code>--ease-drawer</code></td><td><code>translateX</code></td></tr>
+            <tr><td>Camera pan to highlighted cards</td><td class="tnum">600 ms</td><td><code>--ease-in-out</code></td><td>canvas transform</td></tr>
+            <tr><td>Highlight pulse</td><td class="tnum">900 ms × 2</td><td><code>--ease-out</code></td><td>ring, then stays still</td></tr>
+            <tr><td>Keyboard shortcuts, <kbd>⌘</kbd><kbd>K</kbd>, tool switching</td><td>none</td><td>—</td><td>Instant. Used hundreds of times a day.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="subtle" style="margin-top:12px">Curves: <span class="mono">--ease-out: cubic-bezier(0.23, 1, 0.32, 1)</span> · <span class="mono">--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)</span> · <span class="mono">--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)</span>. Only <span class="mono">transform</span> and <span class="mono">opacity</span> animate. Everything respects reduced motion.</p>
+      <div class="motion-demo" style="margin-top:16px">
+        <div class="caption-row">Same 300 ms, different feel <button class="btn btn-secondary btn-sm" id="raceBtn" style="margin-left:auto">Run</button></div>
+        <div class="subtle">ease-in · don't</div>
+        <div class="track" data-ease="in"><span class="puck"></span></div>
+        <div class="subtle">strong ease-out · do</div>
+        <div class="track" data-ease="out"><span class="puck"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Icons ===================== -->
+  <section class="section" id="icons">
+    <div class="section-head">
+      <span class="eyebrow">05 · Icons</span>
+      <h2 class="h1">Hugeicons, stroke 1.5, 24 grid.</h2>
+      <p class="lead">One icon family across the product (<span class="mono">@hugeicons/react</span>, stroke style). Brand marks for Google and X come from their official SVGs (thesvg.org). Icon-only buttons always carry an accessible label and a tooltip.</p>
+    </div>
+    <div class="icon-grid" id="iconGrid"></div>
+  </section>
+
+  <!-- ===================== Components ===================== -->
+  <section class="section" id="components">
+    <div class="section-head">
+      <span class="eyebrow">06 · Components</span>
+      <h2 class="h1">shadcn/ui, restyled with these tokens.</h2>
+      <p class="lead">Radix primitives underneath for focus and keyboard behaviour; shadcn's structure; Stash's tokens on top. Destructive actions always confirm in a dialog. Errors appear next to the field that caused them.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel panel-pad grid" style="gap:18px">
+        <div class="label">Buttons</div>
+        <div class="btn-row">
+          <button class="btn btn-primary">New canvas</button>
+          <button class="btn btn-secondary"><svg class="i"><use href="#i-upload"/></svg>Upload image</button>
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-danger">Delete canvas</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm">Save</button>
+          <button class="btn btn-secondary btn-sm">Duplicate</button>
+          <button class="btn btn-primary btn-sm" disabled>Saving…</button>
+          <button class="icon-btn" aria-label="More options"><svg><use href="#i-more"/></svg></button>
+        </div>
+        <div class="label">Badges</div>
+        <div class="btn-row" style="gap:8px">
+          <span class="badge badge-neutral">Link</span>
+          <span class="badge badge-accent">2 matches</span>
+          <span class="badge badge-warn"><svg class="i"><use href="#i-shield"/></svg>Checking</span>
+          <span class="badge badge-danger"><svg class="i"><use href="#i-eye-off"/></svg>Hidden from AI</span>
+          <span class="badge badge-success"><svg class="i"><use href="#i-check"/></svg>Saved</span>
+        </div>
+        <div class="label">Tooltip and keys</div>
+        <div class="btn-row"><span class="tooltip">Note <kbd>N</kbd></span><span class="tooltip">Ask Stash <kbd>⌘</kbd><kbd>J</kbd></span><span class="subtle">Quick find <kbd>⌘</kbd> <kbd>K</kbd></span></div>
+      </div>
+
+      <div class="panel panel-pad grid" style="gap:16px">
+        <div class="label">Inputs</div>
+        <div class="field"><label for="f1">Canvas name</label><input class="input" id="f1" value="Payments research"></div>
+        <div class="field"><label for="f2">Email</label><input class="input is-error" id="f2" value="sam@" aria-invalid="true" aria-describedby="f2e"><span class="err" id="f2e"><svg class="i" style="width:14px;height:14px"><use href="#i-alert"/></svg>Enter a full email address, like sam@example.com.</span></div>
+        <div class="label">Menu</div>
+        <div class="menu" role="menu">
+          <button role="menuitem"><svg class="i"><use href="#i-copy"/></svg>Duplicate<kbd>⌘D</kbd></button>
+          <button role="menuitem" class="is-active"><svg class="i"><use href="#i-external"/></svg>Open link</button>
+          <button role="menuitem"><svg class="i"><use href="#i-search"/></svg>Find related</button>
+          <hr>
+          <button role="menuitem" class="danger"><svg class="i"><use href="#i-trash"/></svg>Delete<kbd>⌫</kbd></button>
+        </div>
+      </div>
+
+      <div class="panel panel-pad grid" style="gap:14px">
+        <div class="label">Toasts (bottom right, 4 s, swipe to dismiss)</div>
+        <div class="toast"><span class="t-icon" style="background:var(--success-soft);color:var(--success)"><svg class="i" style="width:16px;height:16px"><use href="#i-check"/></svg></span><div><div class="t-title">Link added</div><div class="t-body">Stripe Pricing is on Payments research.</div></div></div>
+        <div class="toast"><span class="t-icon" style="background:var(--danger-soft);color:var(--danger)"><svg class="i" style="width:16px;height:16px"><use href="#i-eye-off"/></svg></span><div><div class="t-title">Image not shown</div><div class="t-body">It didn't pass the safety check and was removed.</div></div></div>
+        <div class="label">Loading skeleton</div>
+        <div class="card" style="width:100%;max-width:300px;box-shadow:var(--shadow-sm)"><div class="skel" style="height:96px;border-radius:14px 14px 0 0"></div><div class="c-body"><div class="skel" style="height:10px;width:40%"></div><div class="skel" style="height:12px;width:85%"></div><div class="skel" style="height:10px;width:70%"></div></div></div>
+      </div>
+
+      <div class="panel panel-pad grid" style="gap:14px;align-content:start">
+        <div class="label">Confirm dialog</div>
+        <div class="dialog" role="dialog" aria-labelledby="dlgT">
+          <div class="h3" id="dlgT">Delete "Payments research"?</div>
+          <p class="muted" style="font-size:14px">The canvas and its 24 cards move to Trash. You can restore them for 30 days.</p>
+          <div class="btn-row" style="justify-content:flex-end"><button class="btn btn-ghost">Cancel</button><button class="btn btn-danger">Delete canvas</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="panel panel-pad" style="background:var(--bg);box-shadow:inset 0 0 0 1px var(--border)">
+        <div class="label" style="margin-bottom:14px">Sign in</div>
+        <form class="auth" onsubmit="return false">
+          <div class="head"><span class="mascot" data-mascot data-state="idle" data-follow></span><div class="h2">Sign in to Stash</div><p class="subtle">Welcome back. Your canvases are where you left them.</p></div>
+          <div class="oauth">
+            <button class="btn btn-secondary btn-block btn-lg" type="button"><svg class="i"><use href="#i-google"/></svg>Continue with Google</button>
+            <button class="btn btn-secondary btn-block btn-lg" type="button"><svg class="i"><use href="#i-x"/></svg>Continue with X</button>
+          </div>
+          <div class="divider">or with email</div>
+          <div class="field"><label for="ae">Email</label><input class="input" id="ae" type="email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="field"><div class="row"><label for="ap">Password</label><a class="link" href="#">Forgot password?</a></div><input class="input" id="ap" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+          <p class="subtle" style="text-align:center">New to Stash? <a class="link" href="#">Create an account</a></p>
+        </form>
+      </div>
+      <div class="grid" style="gap:16px;align-content:start">
+        <div class="panel panel-pad grid" style="gap:12px">
+          <div class="label">Canvas cards</div>
+          <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px">
+            <div class="card note" style="background:var(--note-pink)"><span class="corner-badge badge badge-danger"><svg class="i"><use href="#i-eye-off"/></svg>Hidden from AI</span><div class="c-body" style="padding-top:38px"><div class="note-title">Draft reply</div><p style="font-size:13px;color:var(--text-2)">Kept private. Stash won't send this card to the AI or show it in answers.</p></div></div>
+            <div class="card image checking"><div class="img"><span class="mascot" data-mascot data-state="checking"></span><span>Checking image…</span></div><div class="cap"><span>whiteboard.jpg</span><span class="badge badge-warn">Checking</span></div></div>
+          </div>
+        </div>
+        <div class="empty">
+          <span class="mascot" data-mascot data-state="sleeping"></span>
+          <div class="h3">No canvases yet</div>
+          <p class="subtle" style="max-width:34ch">Start one and paste a link. Stash will keep an eye on it from there.</p>
+          <button class="btn btn-primary"><svg class="i"><use href="#i-plus"/></svg>New canvas</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Landing ===================== -->
+  <section class="section" id="landing">
+    <div class="section-head">
+      <span class="eyebrow">07 · Landing page</span>
+      <h2 class="h1">Say what it does, then show it.</h2>
+      <p class="lead">One headline, one action, a real product picture. No feature soup, no testimonials we don't have, no "supercharge". The mascot watches the visitor's pointer in the hero.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg class="i"><use href="#i-lock"/></svg>stash.app</div><div style="width:42px"></div></div>
+      <div class="landing">
+        <nav class="l-nav">
+          <div class="l-logo"><span class="mascot" data-mascot data-state="idle"></span>Stash</div>
+          <div class="l-links"><a href="#">How it works</a><a href="#">Privacy</a><a href="#">Pricing</a></div>
+          <a class="btn btn-ghost btn-sm" href="#" style="text-decoration:none">Sign in</a>
+          <a class="btn btn-primary btn-sm" href="#" style="text-decoration:none">Start free</a>
+        </nav>
+        <div class="l-hero">
+          <div class="copy">
+            <span class="pill"><span class="mascot" data-mascot data-state="idle"></span>Stash keeps an eye on everything you save</span>
+            <h3 class="h-display">Put it on the canvas. Ask for it later.</h3>
+            <p class="lead">Links, notes, code and images, on as many open canvases as you like. When you need something back, ask in plain words and the canvas moves to it.</p>
+            <div class="btn-row"><a class="btn btn-primary btn-lg" href="#" style="text-decoration:none">Start free<svg class="i"><use href="#i-arrow"/></svg></a><a class="btn btn-secondary btn-lg" href="#" style="text-decoration:none">See it work</a></div>
+            <div class="small-print"><span><svg class="i" style="width:15px;height:15px"><use href="#i-google"/></svg>Google</span><span><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg>X</span><span><svg class="i" style="width:15px;height:15px"><use href="#i-mail"/></svg>Email</span><span>· Free while in beta</span></div>
+          </div>
+          <div class="l-visual" aria-label="Product preview">
+            <div class="text-label" style="left:24px;top:22px;font-size:20px">Trip to Kyoto</div>
+            <div class="card" style="left:24px;top:64px;width:200px"><div class="og" style="height:84px;background:var(--surface-2)"><b style="font-size:17px;color:var(--text-2)">japan-guide</b></div><div class="c-body"><div class="c-site"><span class="favicon" style="background:#B03A2E">J</span>japan-guide.com</div><div class="c-title">Fushimi Inari: getting there early</div></div></div>
+            <div class="card note is-hit" style="left:244px;top:52px;width:190px;background:var(--note-yellow)"><span class="hit-num">1</span><div class="c-body"><div class="note-title">Day 2</div><ul><li class="done"><span class="cbox on"><svg><use href="#i-check"/></svg></span><span>Book ryokan</span></li><li><span class="cbox"></span><span>Arashiyama at 7am</span></li><li><span class="cbox"></span><span>Nishiki market lunch</span></li></ul></div></div>
+            <div class="card image" style="left:252px;top:206px;width:176px"><div class="img" style="height:86px"><div class="shot"><i style="width:60%"></i><div class="row"><i></i><span class="pill"></span></div><i style="width:80%"></i></div></div><div class="cap"><span>rail-pass.png</span></div></div>
+            <div class="watcher"><span class="mascot" data-mascot data-state="found" data-follow></span><span>"What's on day 2?" Found it on <b>Day 2</b>.</span></div>
+          </div>
+        </div>
+        <div class="l-proof"><span><svg class="i" style="width:15px;height:15px"><use href="#i-shield"/></svg>Adult and abusive content never reaches the AI</span><span><svg class="i" style="width:15px;height:15px"><use href="#i-lock"/></svg>Your canvases are private</span><span><svg class="i" style="width:15px;height:15px"><use href="#i-grid"/></svg>Unlimited canvases</span></div>
+        <div class="l-features">
+          <div class="l-feature">
+            <span class="ic"><svg><use href="#i-paste"/></svg></span>
+            <div class="h3">Paste anything</div>
+            <p>A URL becomes a link card with its title and preview. Code becomes a code block. A screenshot becomes an image card.</p>
+            <div class="mini"><div class="paste-demo"><kbd>⌘</kbd><kbd>V</kbd><svg class="i" style="width:14px;height:14px"><use href="#i-arrow"/></svg>github.com/vercel/next.js</div><div class="card" style="box-shadow:var(--shadow-sm)"><div class="c-body"><div class="c-site"><span class="favicon" style="background:#24292F">G</span>github.com</div><div class="c-title" style="font-size:13px">vercel/next.js: The React Framework</div></div></div></div>
+          </div>
+          <div class="l-feature">
+            <span class="ic"><svg><use href="#i-search"/></svg></span>
+            <div class="h3">Ask, and it lights up</div>
+            <p>Ask Stash in your own words. It answers from your cards only, cites them, and moves the canvas to show you where they are.</p>
+            <div class="mini"><div class="msg-user" style="font-size:12.5px">the webhook stuff?</div><div class="cites" style="margin-top:0"><span class="cite"><span class="n">1</span><span class="t">Razorpay · Webhooks</span></span><span class="cite"><span class="n">2</span><span class="t">verify_signature.py</span></span></div></div>
+          </div>
+          <div class="l-feature">
+            <span class="ic"><svg><use href="#i-shield"/></svg></span>
+            <div class="h3">Safe by default</div>
+            <p>Every question, card and image is checked before any AI sees it. Adult or abusive content is never sent, and Stash says so plainly.</p>
+            <div class="mini"><div class="notice blocked" style="font-size:12.5px"><span class="mascot" data-mascot data-state="blocked" style="width:24px;height:24px"></span>I can't help with that.</div></div>
+          </div>
+        </div>
+        <div class="l-cta">
+          <span class="mascot" data-mascot data-state="idle" data-follow></span>
+          <div class="h1">Your next canvas is one click away.</div>
+          <a class="btn btn-primary btn-lg" href="#" style="text-decoration:none">Start free</a>
+        </div>
+        <footer class="l-foot"><span>© 2026 Stash</span><span>Privacy · Terms · Status</span></footer>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Dashboard ===================== -->
+  <section class="section" id="dashboard">
+    <div class="section-head">
+      <span class="eyebrow">08 · Dashboard</span>
+      <h2 class="h1">Canvases, nothing else.</h2>
+      <p class="lead">A grid of canvases with a live thumbnail, sorted by last edit. Search is instant and keyboard-first.</p>
+    </div>
+    <div class="frame">
+      <div class="dash">
+        <div class="dash-top">
+          <div class="h2">Your canvases</div>
+          <div class="dash-search"><svg class="i"><use href="#i-search"/></svg>Find a canvas or card<kbd>⌘K</kbd></div>
+          <button class="btn btn-primary"><svg class="i"><use href="#i-plus"/></svg>New canvas</button>
+        </div>
+        <div class="canvas-grid">
+          <button class="ctile"><div class="thumb"><i style="left:14px;top:16px;width:46px;height:34px"></i><i style="left:70px;top:22px;width:40px;height:40px;background:var(--note-yellow)"></i><i style="left:120px;top:14px;width:52px;height:30px"></i><i style="left:118px;top:56px;width:60px;height:40px"></i></div><div class="meta"><b>Payments research</b><span class="tnum">24 cards · edited 2 min ago</span></div></button>
+          <button class="ctile"><div class="thumb"><i style="left:20px;top:20px;width:56px;height:44px"></i><i style="left:86px;top:30px;width:40px;height:40px;background:var(--note-blue)"></i><i style="left:30px;top:74px;width:44px;height:26px"></i></div><div class="meta"><b>Trip to Kyoto</b><span class="tnum">11 cards · edited yesterday</span></div></button>
+          <button class="ctile"><div class="thumb"><i style="left:24px;top:18px;width:70px;height:46px"></i><i style="left:104px;top:18px;width:40px;height:40px;background:var(--note-green)"></i><i style="left:104px;top:66px;width:70px;height:34px"></i></div><div class="meta"><b>Reading list</b><span class="tnum">58 cards · edited 3 Oct</span></div></button>
+          <button class="ctile new"><div><svg class="i" style="width:22px;height:22px"><use href="#i-plus"/></svg>New canvas</div></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Canvas + chat ===================== -->
+  <section class="section" id="canvas">
+    <div class="section-head">
+      <span class="eyebrow">09 · Canvas and chat</span>
+      <h2 class="h1">The canvas is quiet until you ask.</h2>
+      <p class="lead">Floating chrome at the edges, content in the middle. Press <b>Ask Stash</b> and type, or use <b>Run the demo</b>: the drawer slides in, Stash searches, the matching cards light up and the camera moves to them while the answer streams.</p>
+      <div class="btn-row"><button class="btn btn-primary" id="demoBtn">Run the demo</button><button class="btn btn-ghost" id="resetBtn">Reset</button></div>
+    </div>
+
+    <div class="frame">
+      <div class="stage-fit" id="stageFit">
+        <div class="stage" id="stage">
+          <div class="world" id="world">
+            <div class="text-label" style="left:64px;top:76px">Payments research</div>
+
+            <div class="card" data-id="stripe" style="left:64px;top:124px;width:260px">
+              <div class="og" style="background:var(--surface-2)"><b style="color:#635BFF">stripe</b></div>
+              <div class="c-body"><div class="c-site"><span class="favicon" style="background:#635BFF">S</span>stripe.com</div><div class="c-title">Pricing &amp; fees</div><div class="c-desc">Simple, pay-as-you-go pricing for card payments, wallets and bank transfers.</div></div>
+            </div>
+
+            <div class="card image" data-id="shot" style="left:64px;top:404px;width:260px">
+              <div class="img" style="height:110px"><div class="shot"><i style="width:45%"></i><div class="row"><i></i><span class="pill"></span></div><i style="width:70%"></i><i style="width:55%"></i></div></div>
+              <div class="cap"><span>checkout-flow-v2.png</span><svg class="i" style="width:14px;height:14px;color:var(--text-3)"><use href="#i-image"/></svg></div>
+            </div>
+
+            <div class="card note" data-id="checklist" style="left:356px;top:124px;width:224px;background:var(--note-yellow)">
+              <div class="c-body"><div class="note-title">Launch checklist</div>
+                <ul><li class="done"><span class="cbox on"><svg><use href="#i-check"/></svg></span><span>Test cards in sandbox</span></li><li class="done"><span class="cbox on"><svg><use href="#i-check"/></svg></span><span>Refund flow</span></li><li><span class="cbox"></span><span>Webhook retries</span></li><li><span class="cbox"></span><span>GST invoice template</span></li></ul>
+              </div>
+            </div>
+
+            <div class="card note" data-id="private" style="left:356px;top:322px;width:224px;background:var(--note-pink)">
+              <span class="corner-badge badge badge-danger"><svg class="i"><use href="#i-eye-off"/></svg>Hidden from AI</span>
+              <div class="c-body" style="padding-top:38px"><div class="note-title">Vendor call notes</div><p style="font-size:12.5px;color:var(--text-2)">Flagged by the safety check. Stays on your canvas, never sent to the AI.</p></div>
+            </div>
+
+            <div class="card image checking" data-id="checking" style="left:356px;top:488px;width:224px">
+              <div class="img" style="height:86px"><span class="mascot" data-mascot data-state="checking"></span><span>Checking image…</span></div>
+              <div class="cap"><span>whiteboard.jpg</span><span class="badge badge-warn">Checking</span></div>
+            </div>
+
+            <div class="card" data-id="razorpay" style="left:612px;top:96px;width:280px">
+              <div class="og" style="height:96px;background:var(--surface-2)"><b style="color:#3395FF">Razorpay</b></div>
+              <div class="c-body"><div class="c-site"><span class="favicon" style="background:#0C2451">R</span>razorpay.com/docs</div><div class="c-title">Webhooks: set up, validate and retry</div><div class="c-desc">Subscribe to payment events and verify each request with the X-Razorpay-Signature header.</div></div>
+            </div>
+
+            <div class="card code" data-id="code" style="left:612px;top:360px;width:300px">
+              <div class="code-head"><span>verify_signature.py</span><span>python</span></div>
+<pre><span class="tok-k">import</span> hmac, hashlib
+
+<span class="tok-k">def</span> <span class="tok-f">verify</span>(body, sig, secret):
+    mac = hmac.new(secret, body,
+                   hashlib.sha256)
+    <span class="tok-c"># constant-time compare</span>
+    <span class="tok-k">return</span> hmac.compare_digest(
+        mac.hexdigest(), sig)</pre>
+            </div>
+          </div>
+
+          <div class="cv-top">
+            <div class="cv-crumb"><span class="mascot" data-mascot data-state="idle"></span><span class="muted">Canvases</span><span class="sep">/</span><b>Payments research</b></div>
+            <div class="toolbar" role="toolbar" aria-label="Canvas tools">
+              <button class="tb" aria-label="Select (V)" aria-pressed="true"><svg><use href="#i-cursor"/></svg><small>V</small></button>
+              <button class="tb" aria-label="Pan (H)"><svg><use href="#i-hand"/></svg><small>H</small></button>
+              <span class="vr"></span>
+              <button class="tb" aria-label="Note (N)"><svg><use href="#i-note"/></svg><small>N</small></button>
+              <button class="tb" aria-label="Text (T)"><svg><use href="#i-text"/></svg><small>T</small></button>
+              <button class="tb" aria-label="Link (L)"><svg><use href="#i-link"/></svg><small>L</small></button>
+              <button class="tb" aria-label="Code (C)"><svg><use href="#i-code"/></svg><small>C</small></button>
+              <button class="tb" aria-label="Image (I)"><svg><use href="#i-image"/></svg><small>I</small></button>
+              <span class="vr"></span>
+              <button class="tb" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
+              <button class="tb" aria-label="Redo"><svg><use href="#i-redo"/></svg></button>
+            </div>
+            <div class="cv-status"><span class="ok"></span>Saved</div>
+          </div>
+
+          <div class="cv-zoom"><button aria-label="Zoom out"><svg><use href="#i-minus"/></svg></button><span class="tnum" id="zoomPct">100%</span><button aria-label="Zoom in"><svg><use href="#i-plus"/></svg></button><button aria-label="Fit to content"><svg><use href="#i-fit"/></svg></button></div>
+
+          <button class="fab" id="fab"><span class="mascot" data-mascot data-state="idle"></span>Ask Stash<kbd>⌘J</kbd></button>
+
+          <aside class="drawer" aria-label="Ask Stash">
+            <div class="chat">
+              <div class="chat-head">
+                <span class="mascot" data-mascot data-state="idle" id="drawerMascot"></span>
+                <div class="who"><b>Stash</b><span id="drawerStatus">Watching Payments research</span></div>
+                <button class="icon-btn" id="closeDrawer" aria-label="Close chat"><svg><use href="#i-close"/></svg></button>
+              </div>
+              <div class="chat-scope"><div class="seg" role="group" aria-label="Search scope"><button aria-pressed="true">This canvas</button><button aria-pressed="false">All canvases</button></div></div>
+              <div class="chat-body" id="chatBody">
+                <div class="notice neutral"><span class="mascot" data-mascot data-state="idle"></span><span>Ask about anything on this canvas. I'll answer from your cards and show you where they are.</span></div>
+              </div>
+              <div class="chat-foot">
+                <form class="composer" id="composer"><textarea id="ask" rows="1" placeholder="Where did I save the webhook stuff?" aria-label="Ask Stash"></textarea><button class="send" aria-label="Send"><svg><use href="#i-arrow-up"/></svg></button></form>
+                <div class="chat-hint"><span>Answers only from your cards</span><span><kbd>↵</kbd> send</span></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px">
+      <div class="h3" style="margin-bottom:6px">Chat states</div>
+      <p class="subtle" style="margin-bottom:16px">Every state has a fixed sentence and a matching mascot. Nothing is improvised by the model when it has nothing to say.</p>
+      <div class="chat-states">
+        <div>
+          <div class="caption-row"><span class="badge badge-neutral">1</span>Searching</div>
+          <div class="chat"><div class="chat-body"><div class="msg-user">notes about refunds?</div><div class="msg-ai"><span class="mascot" data-mascot data-state="searching"></span><div class="txt"><span class="status">Looking through Payments research…</span><div class="skel" style="height:10px;width:80%;margin-top:10px"></div><div class="skel" style="height:10px;width:55%;margin-top:6px"></div></div></div></div></div>
+        </div>
+        <div>
+          <div class="caption-row"><span class="badge badge-accent">2</span>Found, with citations</div>
+          <div class="chat"><div class="chat-body"><div class="msg-user">notes about refunds?</div><div class="msg-ai"><span class="mascot" data-mascot data-state="found"></span><div class="txt">The refund flow is ticked off on your Launch checklist <span class="cite-inline">1</span>.<div class="cites"><button class="cite"><span class="n">1</span><span class="t">Launch checklist</span></button></div></div></div></div></div>
+        </div>
+        <div>
+          <div class="caption-row"><span class="badge badge-neutral">3</span>Nothing matches</div>
+          <div class="chat"><div class="chat-body"><div class="msg-user">my passport scan?</div><div class="msg-ai"><span class="mascot" data-mascot data-state="sleeping"></span><div class="txt">Nothing on your canvas matches that.<div class="btn-row" style="margin-top:10px"><button class="btn btn-secondary btn-sm">Search all canvases</button></div></div></div></div></div>
+        </div>
+        <div>
+          <div class="caption-row"><span class="badge badge-danger">4</span>Blocked by guardrails</div>
+          <div class="chat"><div class="chat-body"><div class="msg-user" style="color:var(--text-3)">Message hidden</div><div class="notice blocked"><span class="mascot" data-mascot data-state="blocked"></span><div><b style="font-weight:600">I can't help with that.</b><div style="font-size:12.5px;color:var(--text-2);margin-top:2px">Adult or abusive requests aren't sent to the AI.</div></div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Rules ===================== -->
+  <section class="section" id="rules">
+    <div class="section-head">
+      <span class="eyebrow">10 · Quality bar</span>
+      <h2 class="h1">What keeps it from looking generated.</h2>
+      <p class="lead">Drawn from the ui-skills baseline and Emil Kowalski's design-engineering rules, adapted to Stash.</p>
+    </div>
+    <div class="rules">
+      <div class="panel panel-pad"><div class="h3" style="margin-bottom:12px">Do</div><ul class="do">
+        <li><svg><use href="#i-check"/></svg><span>One accent per view. Neutrals do the rest.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Real copy everywhere: real card titles, real counts, real errors that say how to fix them.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Every empty state has exactly one next action.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Pressable things scale to 0.97 on press. Popovers grow from their trigger.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Skeletons shaped like the content that is loading.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Radix-based shadcn primitives for anything with focus or keyboard behaviour.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><span class="mono">h-dvh</span>, safe-area insets for fixed controls, <span class="mono">tabular-nums</span> for counts.</span></li>
+        <li><svg><use href="#i-check"/></svg><span>Check every screen with long titles, 500 cards and an empty account.</span></li>
+      </ul></div>
+      <div class="panel panel-pad"><div class="h3" style="margin-bottom:12px">Don't</div><ul class="dont">
+        <li><svg><use href="#i-close"/></svg><span>Gradients, glows, glass panels, purple-to-blue anything.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Sparkle icons for AI. Stash is the AI's face.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>"Unlock", "supercharge", "seamless", "revolutionize", emoji in UI copy.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Animating keyboard actions, the command palette, or tool switches.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Animating width, height, top or left. Transform and opacity only.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Entrance animations from <span class="mono">scale(0)</span> or with <span class="mono">ease-in</span>.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Fake testimonials, fake logos, fake user counts on the landing page.</span></li>
+        <li><svg><use href="#i-close"/></svg><span>Mixing icon families or stroke widths.</span></li>
+      </ul></div>
+    </div>
+    <div class="panel panel-pad" style="margin-top:16px">
+      <div class="h3" style="margin-bottom:10px">Where the reference libraries fit</div>
+      <div class="table-scroll"><table class="spec-table">
+        <thead><tr><th>Source</th><th>Use it for</th><th>Keep out</th></tr></thead>
+        <tbody>
+          <tr><td>shadcn/ui</td><td>Base of every app component: dialog, menu, popover, tooltip, tabs, form, toast (Sonner)</td><td>Default zinc theme; use these tokens</td></tr>
+          <tr><td>Hugeicons</td><td>All product icons, stroke style</td><td>Mixing with other sets</td></tr>
+          <tr><td>Keyline, Morphicons</td><td>A few animated icon state changes (copy → check, play → pause)</td><td>As the main icon set</td></tr>
+          <tr><td>thesvg.org</td><td>Google and X brand marks</td><td>Redrawn brand logos</td></tr>
+          <tr><td>transitions.dev</td><td>Reference for drawer, popover and toast transitions</td><td>Long or decorative transitions in the app</td></tr>
+          <tr><td>Aceternity, RareUI, Kobra, EasyUI, PinUI</td><td>Landing page only: at most one or two restrained sections (e.g. a product-preview reveal on scroll)</td><td>Spotlight beams, aurora gradients, meteor effects, 3D cards, anything inside the app</td></tr>
+          <tr><td>ui-skills, Emil's skills</td><td>Review every PR's UI against these rules</td><td>—</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <footer class="page-foot">Stash style guide · Geist and Geist Mono · option and mode are remembered on this device.</footer>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  /* ---------- Mascot ---------- */
+  var MASCOT =
+    '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+      '<g class="m-lid">' +
+        '<rect x="6" y="13" width="52" height="10" rx="4" fill="var(--m-lid)" stroke="var(--m-ink)" stroke-width="2.5"/>' +
+      '</g>' +
+      '<rect x="9" y="21" width="46" height="36" rx="11" fill="var(--m-body)" stroke="var(--m-ink)" stroke-width="2.5"/>' +
+      '<path d="M22 50.5h20" stroke="var(--m-ink)" stroke-width="2.5" stroke-linecap="round" opacity=".18"/>' +
+      '<g class="m-open">' +
+        '<ellipse class="m-eyeball" cx="24" cy="37" rx="7" ry="7.5" fill="var(--m-eye)" stroke="var(--m-ink)" stroke-width="2.5"/>' +
+        '<ellipse class="m-eyeball" cx="40" cy="37" rx="7" ry="7.5" fill="var(--m-eye)" stroke="var(--m-ink)" stroke-width="2.5"/>' +
+        '<g class="m-pupils"><circle cx="24" cy="37" r="3.3" fill="var(--m-ink)"/><circle cx="40" cy="37" r="3.3" fill="var(--m-ink)"/>' +
+        '<circle cx="25.3" cy="35.6" r="1" fill="var(--m-eye)"/><circle cx="41.3" cy="35.6" r="1" fill="var(--m-eye)"/></g>' +
+      '</g>' +
+      '<g class="m-happy" fill="none" stroke="var(--m-ink)" stroke-width="2.75" stroke-linecap="round"><path d="M18 39.5q6-7 12 0"/><path d="M34 39.5q6-7 12 0"/></g>' +
+      '<g class="m-flat" fill="none" stroke="var(--m-ink)" stroke-width="2.75" stroke-linecap="round"><path d="M18 37.5h12"/><path d="M34 37.5h12"/></g>' +
+      '<g class="m-closed" fill="none" stroke="var(--m-ink)" stroke-width="2.75" stroke-linecap="round"><path d="M18 36q6 6 12 0"/><path d="M34 36q6 6 12 0"/></g>' +
+    '</svg>';
+
+  document.querySelectorAll('[data-mascot]').forEach(function (el) { el.innerHTML = MASCOT; });
+
+  function setMascot(el, state) { if (el) el.setAttribute('data-state', state); }
+
+  // Pause blinking for mascots that are off screen.
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { e.target.classList.toggle('is-offscreen', !e.isIntersecting); });
+    });
+    document.querySelectorAll('[data-mascot]').forEach(function (el) { io.observe(el); });
+  }
+
+  // Eyes follow the pointer (only mascots marked data-follow, only in idle/found states).
+  var followers = Array.prototype.slice.call(document.querySelectorAll('[data-follow]'));
+  var pending = null;
+  window.addEventListener('pointermove', function (e) {
+    pending = { x: e.clientX, y: e.clientY };
+    if (pending.raf) return;
+    pending.raf = requestAnimationFrame(function () {
+      var p = pending; pending = null;
+      followers.forEach(function (el) {
+        if (el.getAttribute('data-state') !== 'idle') return;
+        var r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;
+        var cx = r.left + r.width / 2, cy = r.top + r.height * 0.58;
+        var dx = p.x - cx, dy = p.y - cy, d = Math.hypot(dx, dy) || 1;
+        var k = Math.min(1, d / 220) * 3;
+        var pupils = el.querySelector('.m-pupils');
+        if (pupils) pupils.style.transform = 'translate(' + (dx / d * k).toFixed(2) + 'px,' + (dy / d * k * 0.8).toFixed(2) + 'px)';
+      });
+    });
+  }, { passive: true });
+
+  /* ---------- Option + mode ---------- */
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  var params = new URLSearchParams(location.search);
+  var state = {
+    option: params.get('option') || load('stash-guide-option') || 'graphite',
+    mode: params.get('mode') || load('stash-guide-mode') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  };
+  if (!/^(sterling|notebook|graphite)$/.test(state.option)) state.option = 'sterling';
+  if (!/^(light|dark)$/.test(state.mode)) state.mode = 'light';
+
+  function apply() {
+    root.setAttribute('data-option', state.option);
+    root.setAttribute('data-mode', state.mode);
+    document.querySelectorAll('[data-opt]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-opt') === state.option));
+    });
+    document.querySelectorAll('.option-card').forEach(function (c) { c.setAttribute('data-mode', state.mode); });
+    document.querySelector('#modeBtn use').setAttribute('href', state.mode === 'dark' ? '#i-sun' : '#i-moon');
+    document.getElementById('modeBtn').setAttribute('aria-label', state.mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    renderSwatches();
+  }
+
+  document.querySelectorAll('[data-opt]').forEach(function (b) {
+    b.addEventListener('click', function () { state.option = b.getAttribute('data-opt'); store('stash-guide-option', state.option); apply(); });
+  });
+  document.getElementById('modeBtn').addEventListener('click', function () {
+    state.mode = state.mode === 'dark' ? 'light' : 'dark'; store('stash-guide-mode', state.mode); apply();
+  });
+
+  /* ---------- Swatches ---------- */
+  var TOKENS = [
+    ['bg', 'Page'], ['surface', 'Surface'], ['surface-2', 'Surface 2'], ['surface-3', 'Surface 3'],
+    ['text', 'Text'], ['text-2', 'Text secondary'], ['text-3', 'Text muted'], ['border-strong', 'Border'],
+    ['accent', 'Accent'], ['accent-soft', 'Accent soft'], ['accent-text', 'Accent text'],
+    ['canvas', 'Canvas'], ['canvas-dot', 'Canvas dot'],
+    ['success', 'Success'], ['warning', 'Warning'], ['danger', 'Danger'],
+    ['note-yellow', 'Note yellow'], ['note-blue', 'Note blue'], ['note-green', 'Note green'], ['note-pink', 'Note pink'],
+    ['m-body', 'Mascot body'], ['m-lid', 'Mascot lid'], ['m-ink', 'Mascot ink']
+  ];
+  function renderSwatches() {
+    var cs = getComputedStyle(root);
+    document.getElementById('swatches').innerHTML = TOKENS.map(function (t) {
+      var v = cs.getPropertyValue('--' + t[0]).trim();
+      return '<div class="swatch"><div class="chip" style="background:var(--' + t[0] + ')"></div><div class="meta"><b>' + t[1] + '</b><span>--' + t[0] + '</span><span>' + v + '</span></div></div>';
+    }).join('');
+  }
+
+  /* ---------- Icon grid ---------- */
+  var ICONS = ['cursor', 'hand', 'note', 'text', 'link', 'code', 'image', 'upload', 'search', 'undo', 'redo', 'plus', 'fit', 'paste', 'copy', 'trash', 'external', 'eye-off', 'shield', 'lock', 'mail', 'grid', 'alert', 'check', 'close', 'more', 'sun', 'moon', 'google', 'x'];
+  document.getElementById('iconGrid').innerHTML = ICONS.map(function (n) {
+    return '<div class="icon-cell"><svg><use href="#i-' + n + '"/></svg><span>' + n + '</span></div>';
+  }).join('');
+
+  /* ---------- Easing race ---------- */
+  document.getElementById('raceBtn').addEventListener('click', function () {
+    document.querySelectorAll('.track').forEach(function (t) {
+      t.style.setProperty('--track-w', t.clientWidth + 'px');
+      t.classList.toggle('go');
+    });
+  });
+
+  /* ---------- Canvas stage scaling ---------- */
+  var fit = document.getElementById('stageFit');
+  var stage = document.getElementById('stage');
+  var STAGE_W = 1040, STAGE_H = 640;
+  function scaleStage() {
+    var s = Math.min(1, fit.clientWidth / STAGE_W);
+    stage.style.width = Math.max(STAGE_W, fit.clientWidth / s) + 'px';
+    stage.style.transform = 'scale(' + s + ')';
+    fit.style.height = (STAGE_H * s) + 'px';
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(scaleStage).observe(fit); else window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  /* ---------- Chat + highlight demo ---------- */
+  var world = document.getElementById('world');
+  var chatBody = document.getElementById('chatBody');
+  var drawerMascot = document.getElementById('drawerMascot');
+  var drawerStatus = document.getElementById('drawerStatus');
+  var zoomPct = document.getElementById('zoomPct');
+  var timers = [];
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+  function openDrawer() { stage.classList.add('drawer-open'); }
+  function closeDrawer() { stage.classList.remove('drawer-open'); clearHighlight(); }
+  function clearHighlight() {
+    world.classList.remove('is-dimmed');
+    world.querySelectorAll('.is-hit').forEach(function (c) { c.classList.remove('is-hit'); var n = c.querySelector('.hit-num'); if (n) n.remove(); });
+    world.style.transform = '';
+    zoomPct.textContent = '100%';
+  }
+  function highlight(ids) {
+    world.classList.add('is-dimmed');
+    ids.forEach(function (id, i) {
+      var c = world.querySelector('[data-id="' + id + '"]');
+      if (!c) return;
+      c.classList.add('is-hit');
+      var n = document.createElement('span'); n.className = 'hit-num'; n.textContent = String(i + 1); c.appendChild(n);
+    });
+    // fitView: bring the matched cards into the area left of the drawer
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    ids.forEach(function (id) {
+      var c = world.querySelector('[data-id="' + id + '"]');
+      x0 = Math.min(x0, c.offsetLeft); y0 = Math.min(y0, c.offsetTop);
+      x1 = Math.max(x1, c.offsetLeft + c.offsetWidth); y1 = Math.max(y1, c.offsetTop + c.offsetHeight);
+    });
+    var visW = stage.offsetWidth - 360, visH = STAGE_H;
+    var s = Math.min(1, (visW - 120) / (x1 - x0), (visH - 160) / (y1 - y0));
+    var tx = visW / 2 - ((x0 + x1) / 2) * s;
+    var ty = visH / 2 + 10 - ((y0 + y1) / 2) * s;
+    world.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
+    zoomPct.textContent = Math.round(s * 100) + '%';
+  }
+
+  function el(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function ask(question) {
+    clearTimers(); clearHighlight(); openDrawer();
+    chatBody.innerHTML = '';
+    chatBody.appendChild(el('<div class="msg-user">' + esc(question) + '</div>'));
+    var ai = el('<div class="msg-ai"><span class="mascot" data-mascot data-state="searching"></span><div class="txt"><span class="status">Looking through Payments research…</span></div></div>');
+    ai.querySelector('.mascot').innerHTML = MASCOT;
+    chatBody.appendChild(ai);
+    setMascot(drawerMascot, 'searching'); drawerStatus.textContent = 'Searching…';
+
+    var q = question.toLowerCase();
+    var blocked = /\b(nude|nudes|porn|sex|sexy|idiot|stupid|hate you)\b/.test(q);
+    var hits = /webhook|signature|razorpay|verify/.test(q) ? ['razorpay', 'code']
+             : /refund|checklist|launch/.test(q) ? ['checklist']
+             : /stripe|pricing|fee/.test(q) ? ['stripe']
+             : /checkout|screenshot|image/.test(q) ? ['shot'] : [];
+
+    if (blocked) {
+      later(function () {
+        ai.remove();
+        var n = el('<div class="notice blocked"><span class="mascot" data-mascot data-state="blocked"></span><div><b style="font-weight:600">I can\'t help with that.</b><div style="font-size:12.5px;color:var(--text-2);margin-top:2px">Adult or abusive requests aren\'t sent to the AI.</div></div></div>');
+        n.querySelector('.mascot').innerHTML = MASCOT;
+        chatBody.appendChild(n);
+        setMascot(drawerMascot, 'blocked'); drawerStatus.textContent = 'Request blocked';
+      }, 350);
+      return;
+    }
+
+    later(function () {
+      var txt = ai.querySelector('.txt');
+      var m = ai.querySelector('.mascot');
+      if (!hits.length) {
+        setMascot(m, 'sleeping'); setMascot(drawerMascot, 'idle'); drawerStatus.textContent = 'Watching Payments research';
+        txt.innerHTML = 'Nothing on your canvas matches that.';
+        return;
+      }
+      // items arrive before the answer text, so the canvas reacts first
+      highlight(hits);
+      setMascot(m, 'found'); setMascot(drawerMascot, 'found');
+      drawerStatus.textContent = hits.length + (hits.length === 1 ? ' card' : ' cards') + ' found';
+
+      var answers = {
+        razorpay: ['You saved the Razorpay webhooks guide', 'Razorpay · Webhooks'],
+        code: ['and a signature check in verify_signature.py', 'verify_signature.py'],
+        checklist: ['Refunds are ticked off on your Launch checklist', 'Launch checklist'],
+        stripe: ['Stripe\'s pricing page is on this canvas', 'Stripe · Pricing & fees'],
+        shot: ['The checkout screenshot is checkout-flow-v2.png', 'checkout-flow-v2.png']
+      };
+      var parts = [];
+      hits.forEach(function (id, i) { parts.push(answers[id][0] + ' <span class="cite-inline">' + (i + 1) + '</span>'); });
+      var full = parts.join(' ') + '.';
+      var words = full.split(/(\s+)/);
+      txt.innerHTML = '';
+      var i = 0;
+      (function tick() {
+        if (i >= words.length) {
+          var cites = el('<div class="cites"></div>');
+          hits.forEach(function (id, k) {
+            var b = el('<button class="cite"><span class="n">' + (k + 1) + '</span><span class="t">' + esc(answers[id][1]) + '</span></button>');
+            b.addEventListener('click', function () { clearHighlight(); highlight([id]); });
+            cites.appendChild(b);
+          });
+          txt.appendChild(cites);
+          return;
+        }
+        // keep inline citation markup intact while streaming
+        var w = words[i];
+        if (w.indexOf('<span') === 0) { while (i + 1 < words.length && words[i].indexOf('</span>') === -1) { i++; w += words[i]; } }
+        txt.insertAdjacentHTML('beforeend', w);
+        i++;
+        later(tick, 26);
+      })();
+    }, 1100);
+  }
+
+  document.getElementById('fab').addEventListener('click', function () { openDrawer(); setTimeout(function () { document.getElementById('ask').focus({ preventScroll: true }); }, 330); });
+  document.getElementById('closeDrawer').addEventListener('click', function () { clearTimers(); closeDrawer(); setMascot(drawerMascot, 'idle'); drawerStatus.textContent = 'Watching Payments research'; });
+  document.getElementById('composer').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = document.getElementById('ask'); var v = t.value.trim() || t.placeholder;
+    t.value = ''; ask(v);
+  });
+  document.getElementById('ask').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('composer').requestSubmit(); }
+  });
+  document.getElementById('demoBtn').addEventListener('click', function () { ask('Where did I save the webhook stuff?'); });
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    clearTimers(); closeDrawer(); setMascot(drawerMascot, 'idle'); drawerStatus.textContent = 'Watching Payments research';
+    chatBody.innerHTML = '';
+    var n = el('<div class="notice neutral"><span class="mascot" data-mascot data-state="idle"></span><span>Ask about anything on this canvas. I\'ll answer from your cards and show you where they are.</span></div>');
+    n.querySelector('.mascot').innerHTML = MASCOT; chatBody.appendChild(n);
+  });
+  stage.addEventListener('keydown', function (e) { if (e.key === 'Escape') { clearHighlight(); } });
+
+  apply();
+  if (params.get('demo')) setTimeout(function () { ask('Where did I save the webhook stuff?'); }, 300);
+})();
+</script>
+</body>
+</html>

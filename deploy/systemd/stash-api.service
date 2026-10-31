@@ -1,0 +1,20 @@
+[Unit]
+Description=Stash API (uvicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=stash
+Group=stash
+WorkingDirectory=/srv/stash/backend
+# One process: the rate limiter is in memory, so more workers would multiply every limit.
+ExecStart=/srv/stash/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 4000 --proxy-headers --no-server-header
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

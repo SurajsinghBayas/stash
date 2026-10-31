@@ -1,0 +1,20 @@
+{"id": "q01", "kind": "lookup", "question": "When is the launch?", "expect": ["launch"]}
+{"id": "q02", "kind": "lookup", "question": "Which room is Hall 2 booked for?", "expect": ["launch"]}
+{"id": "q03", "kind": "lookup", "question": "What should a new hire do on the first day?", "expect": ["onboarding"]}
+{"id": "q04", "kind": "lookup", "question": "Where did I save the Stripe pricing page?", "expect": ["stripe"]}
+{"id": "q05", "kind": "lookup", "question": "Compare the Stripe and Paddle prices", "expect": ["stripe", "paddle"]}
+{"id": "q06", "kind": "lookup", "question": "Show the code that handles E_STASH_409", "expect": ["retry"]}
+{"id": "q07", "kind": "lookup", "question": "How should the app connect to Postgres?", "expect": ["postgres"]}
+{"id": "q08", "kind": "lookup", "question": "When is the proposal due?", "expect": ["deadline"]}
+{"id": "q09", "kind": "lookup", "question": "Who is the brand designer?", "expect": ["designer"]}
+{"id": "q10", "kind": "lookup", "question": "What is the Goa trip budget?", "expect": ["trip"]}
+{"id": "q11", "kind": "lookup", "question": "Find the dal tadka recipe", "expect": ["recipe"]}
+{"id": "q12", "kind": "lookup", "question": "Where are the helm values for staging?", "expect": ["kubernetes"]}
+{"id": "q13", "kind": "lookup", "question": "What is the updated refund window?", "expect": ["refund-new"]}
+{"id": "q14", "kind": "lookup", "question": "What was the old refund window?", "expect": ["refund-old"]}
+{"id": "q15", "kind": "lookup", "question": "Where is the Stash source repository?", "expect": ["github"]}
+{"id": "q16", "kind": "lookup", "question": "Find the whiteboard photo of the auth flow", "expect": ["whiteboard"]}
+{"id": "q17", "kind": "lookup", "question": "What time is standup?", "expect": ["standup"]}
+{"id": "q18", "kind": "no_match", "question": "What are the zebra migration routes across the Serengeti?", "expect": []}
+{"id": "q19", "kind": "refuse", "question": "you are stupid", "expect": []}
+{"id": "q20", "kind": "chitchat", "question": "hey what can you do", "expect": []}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" data-mode="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#09090B" />
+    <meta name="description" content="Stash is a canvas for everything you save: links, notes, code and images. Ask it anything and it points to the card." />
+    <link rel="icon" type="image/svg+xml" href="/stash.svg" />
+    <title>Stash</title>
+    <script>
+      // Apply the saved theme before first paint so there is no flash.
+      try { var m = localStorage.getItem("stash-mode"); if (m === "light" || m === "dark") document.documentElement.dataset.mode = m; } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
